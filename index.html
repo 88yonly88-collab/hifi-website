@@ -1,0 +1,625 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>株式会社Hi-Fi｜AIと仕組みで、あなたの“面倒”にやさしく寄り添う。</title>
+<meta name="description" content="株式会社Hi-Fiは、業務効率化ツールの開発・ワークフロー簡易化を主軸に、SNS集客・動画編集・非属人制YouTube運営までAIを活用してワンストップで支援します。YouTube銀の盾保有。" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,500&family=Zen+Kaku+Gothic+New:wght@400;500;700&family=Zen+Maru+Gothic:wght@500;700;900&display=swap" rel="stylesheet" />
+<style>
+  :root{
+    --cream:#FFFAF4;
+    --cream-2:#FCF1E7;
+    --cream-3:#F7E7D9;
+    --coral:#F47C66;
+    --coral-d:#E0613F;
+    --peach:#FFC6A6;
+    --gold:#EBB659;
+    --sage:#6FB0A0;
+    --sage-d:#4E978A;
+    --ink:#4A352E;
+    --ink-soft:#8A7268;
+    --deep:#3C2925;
+    --line:#F0E0D1;
+    --shadow-sm:0 3px 14px rgba(74,53,46,.06);
+    --shadow:0 18px 50px rgba(74,53,46,.12);
+    --shadow-lg:0 34px 80px rgba(74,53,46,.18);
+    --r:24px;
+    --maxw:1180px;
+    --jp:"Zen Kaku Gothic New",sans-serif;
+    --jpr:"Zen Maru Gothic",sans-serif; /* rounded, warm */
+    --disp:"Fraunces",serif;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{
+    font-family:var(--jp);
+    color:var(--ink);
+    background:var(--cream);
+    line-height:1.9;
+    -webkit-font-smoothing:antialiased;
+    overflow-x:hidden;
+  }
+  .wrap{max-width:var(--maxw);margin:0 auto;padding:0 28px}
+  a{color:inherit;text-decoration:none}
+  section{position:relative}
+
+  /* soft decorative blobs */
+  .blob{position:absolute;border-radius:46% 54% 62% 38% / 48% 42% 58% 52%;filter:blur(8px);z-index:-1;opacity:.5}
+
+  .kicker{
+    font-family:var(--disp);font-style:italic;font-size:1rem;letter-spacing:.02em;
+    color:var(--coral-d);font-weight:500;display:inline-flex;align-items:center;gap:.55em;
+  }
+  .kicker::before{content:"";width:24px;height:2px;border-radius:2px;background:var(--coral);opacity:.7}
+
+  h2.title{font-family:var(--jpr);font-weight:900;font-size:clamp(1.7rem,3.4vw,2.65rem);line-height:1.4;letter-spacing:.01em;color:var(--ink)}
+  .lead{color:var(--ink-soft);font-size:1.02rem;max-width:60ch;margin-top:16px;line-height:1.95}
+
+  .btn{
+    display:inline-flex;align-items:center;gap:.55em;font-family:var(--jpr);font-weight:700;
+    font-size:.95rem;padding:15px 30px;border-radius:999px;transition:.35s cubic-bezier(.2,.8,.3,1);
+    border:2px solid transparent;cursor:pointer;white-space:nowrap;
+  }
+  .btn-primary{background:linear-gradient(120deg,var(--coral),#ff9472);color:#fff;box-shadow:0 12px 28px rgba(244,124,102,.34)}
+  .btn-primary:hover{transform:translateY(-3px);box-shadow:0 18px 40px rgba(244,124,102,.46)}
+  .btn-ghost{background:#fff;border-color:var(--cream-3);color:var(--ink)}
+  .btn-ghost:hover{border-color:var(--coral);color:var(--coral-d);transform:translateY(-3px)}
+  .btn .arr{transition:transform .3s}
+  .btn:hover .arr{transform:translateX(4px)}
+
+  /* ---------- header ---------- */
+  header{position:fixed;top:0;left:0;right:0;z-index:100;transition:.35s}
+  .nav{display:flex;align-items:center;justify-content:space-between;height:76px}
+  header.scrolled{background:rgba(255,250,244,.85);backdrop-filter:blur(14px);box-shadow:0 4px 24px rgba(74,53,46,.06)}
+  .logo{display:flex;align-items:center;gap:11px;font-family:var(--disp);font-weight:600;font-size:1.5rem;letter-spacing:-.01em;color:var(--ink)}
+  .logo .mark{position:relative;width:34px;height:34px;flex-shrink:0}
+  .logo .mark .c1{position:absolute;width:24px;height:24px;border-radius:50%;background:linear-gradient(135deg,var(--coral),var(--peach));top:0;left:0}
+  .logo .mark .c2{position:absolute;width:16px;height:16px;border-radius:50%;background:linear-gradient(135deg,var(--gold),var(--coral));bottom:0;right:0;mix-blend-mode:multiply;opacity:.92}
+  .logo .mark .dot{position:absolute;width:6px;height:6px;border-radius:50%;background:#fff;top:8px;left:8px}
+  .logo small{font-family:var(--jp);font-size:.58rem;letter-spacing:.18em;color:var(--ink-soft);font-weight:500;display:block;margin-top:-6px}
+  nav ul{display:flex;align-items:center;gap:30px;list-style:none;font-family:var(--jpr);font-weight:500;font-size:.92rem}
+  nav ul a{position:relative;color:var(--ink);transition:.2s}
+  nav ul a::after{content:"";position:absolute;left:0;bottom:-6px;width:0;height:2px;border-radius:2px;background:var(--coral);transition:.3s}
+  nav ul a:hover{color:var(--coral-d)}
+  nav ul a:hover::after{width:100%}
+  .nav-cta{display:flex;align-items:center;gap:16px}
+  .menu-btn{display:none;background:none;border:none;cursor:pointer;flex-direction:column;gap:5px}
+  .menu-btn span{width:24px;height:2px;background:var(--ink);border-radius:2px}
+
+  /* ---------- hero ---------- */
+  .hero{padding:168px 0 96px;position:relative;overflow:hidden}
+  .hero::before{content:"";position:absolute;inset:0;background:
+    radial-gradient(58% 50% at 80% 12%,rgba(255,198,166,.45),transparent 68%),
+    radial-gradient(50% 46% at 8% 6%,rgba(244,124,102,.16),transparent 70%),
+    radial-gradient(40% 40% at 95% 88%,rgba(235,182,89,.16),transparent 70%);z-index:-2}
+  .hero .blob-1{width:340px;height:340px;background:linear-gradient(135deg,var(--peach),var(--coral));top:-60px;right:-40px;opacity:.18}
+  .hero-grid{display:grid;grid-template-columns:1.06fr .94fr;gap:54px;align-items:center}
+  .hero h1{font-family:var(--jpr);font-weight:900;font-size:clamp(2.05rem,4.7vw,3.5rem);line-height:1.42;letter-spacing:.01em;color:var(--ink)}
+  .hero h1 .hl{position:relative;color:var(--coral-d);white-space:nowrap}
+  .hero h1 .hl::after{content:"";position:absolute;left:-2%;right:-2%;bottom:.06em;height:.34em;background:linear-gradient(90deg,rgba(255,198,166,.7),rgba(244,124,102,.32));z-index:-1;border-radius:6px}
+  .hero p.sub{margin:28px 0 36px;color:var(--ink-soft);font-size:1.08rem;max-width:46ch;line-height:2}
+  .hero-actions{display:flex;gap:14px;flex-wrap:wrap}
+  .hero-meta{margin-top:32px;font-family:var(--jpr);font-size:.84rem;color:var(--ink-soft);display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+  .hero-meta .pill{background:#fff;border:1px solid var(--line);border-radius:999px;padding:7px 15px;box-shadow:var(--shadow-sm)}
+  .hero-meta .pill b{color:var(--coral-d);font-weight:700}
+
+  /* hero visual: warm friendly card */
+  .hero-visual{position:relative}
+  .glow-card{background:#fff;border:1px solid var(--line);border-radius:30px;box-shadow:var(--shadow-lg);padding:28px;position:relative;overflow:hidden}
+  .glow-card::before{content:"";position:absolute;top:-50px;right:-50px;width:160px;height:160px;border-radius:50%;background:radial-gradient(circle,rgba(255,198,166,.55),transparent 70%)}
+  .gc-head{display:flex;align-items:center;gap:12px;margin-bottom:22px;position:relative}
+  .gc-ava{width:44px;height:44px;border-radius:50%;background:linear-gradient(135deg,var(--coral),var(--gold));display:grid;place-items:center;font-size:1.3rem;box-shadow:0 6px 16px rgba(244,124,102,.3)}
+  .gc-head .t{font-family:var(--jpr);font-weight:700;font-size:.96rem;color:var(--ink);line-height:1.5}
+  .gc-head .t span{display:block;font-family:var(--jp);font-weight:500;font-size:.72rem;color:var(--ink-soft)}
+  .gc-rows{display:flex;flex-direction:column;gap:13px;position:relative}
+  .gc-row{display:flex;align-items:center;gap:13px;font-family:var(--jpr);font-size:.9rem;font-weight:700;color:var(--ink);background:var(--cream);border:1px solid var(--line);border-radius:16px;padding:14px 16px;transition:.3s}
+  .gc-row:hover{transform:translateX(4px);border-color:var(--peach)}
+  .gc-row .ic{width:34px;height:34px;border-radius:11px;display:grid;place-items:center;flex-shrink:0;font-size:1rem}
+  .gc-row .v{margin-left:auto;font-family:var(--disp);font-weight:700;font-size:1.15rem;color:var(--coral-d)}
+  .gc-row .v small{font-size:.7rem;font-family:var(--jp);color:var(--ink-soft);font-weight:500}
+  .float-tag{position:absolute;background:#fff;border:1px solid var(--line);border-radius:18px;box-shadow:var(--shadow);padding:13px 17px;font-family:var(--jpr);font-weight:700;font-size:.82rem;color:var(--ink);display:flex;align-items:center;gap:10px;line-height:1.4}
+  .float-tag .em{font-size:1.7rem}
+  .ft-1{top:-26px;right:-12px;animation:floaty 4.5s ease-in-out infinite}
+  .ft-2{bottom:-22px;left:-20px;animation:floaty 4.5s ease-in-out infinite 1s}
+  @keyframes floaty{0%,100%{transform:translateY(0) rotate(-1deg)}50%{transform:translateY(-10px) rotate(1deg)}}
+
+  /* ---------- trust strip ---------- */
+  .strip{background:var(--cream-2);overflow:hidden;padding:20px 0;border-block:1px solid var(--line)}
+  .strip-track{display:flex;gap:50px;white-space:nowrap;animation:scroll 28s linear infinite;font-family:var(--jpr);font-weight:700;color:var(--ink);font-size:1rem}
+  .strip-track span{display:inline-flex;align-items:center;gap:50px}
+  .strip-track i{color:var(--coral);font-style:normal;font-size:.8rem}
+  @keyframes scroll{to{transform:translateX(-50%)}}
+
+  .sec{padding:104px 0}
+  .sec-head{margin-bottom:56px}
+  .sec-head.center{text-align:center}
+  .sec-head.center .lead{margin-inline:auto}
+  .sec-head.center .kicker{justify-content:center}
+
+  /* ---------- stats ---------- */
+  .stats{background:linear-gradient(180deg,var(--cream),var(--cream-2))}
+  .stat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:24px}
+  .stat{background:#fff;border:1px solid var(--line);border-radius:var(--r);padding:34px 28px;box-shadow:var(--shadow-sm);position:relative;overflow:hidden;text-align:center}
+  .stat .num{font-family:var(--disp);font-weight:700;font-size:2.7rem;line-height:1;color:var(--coral-d);letter-spacing:-.01em}
+  .stat .num .u{font-size:1.1rem;color:var(--gold);margin-left:2px}
+  .stat .lb{font-family:var(--jpr);font-weight:700;color:var(--ink);font-size:.92rem;margin-top:14px}
+  .stat .sub{font-family:var(--jp);font-weight:400;color:var(--ink-soft);font-size:.76rem;margin-top:4px}
+  .stat.badge-stat{background:linear-gradient(140deg,#fff,var(--cream-2));border-color:var(--peach)}
+  .stat .shield{font-size:2.4rem;line-height:1}
+  .stat .shield-t{font-family:var(--disp);font-weight:700;font-size:1.5rem;color:var(--ink);margin-top:6px}
+
+  /* ---------- strengths ---------- */
+  .str-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:26px}
+  .str{padding:40px 32px;border-radius:var(--r);border:1px solid var(--line);background:#fff;transition:.35s;position:relative;overflow:hidden}
+  .str:hover{transform:translateY(-7px);box-shadow:var(--shadow);border-color:var(--peach)}
+  .str .badge{width:64px;height:64px;border-radius:50% 50% 50% 14px;display:grid;place-items:center;margin-bottom:24px;font-size:1.7rem;box-shadow:var(--shadow-sm)}
+  .str h3{font-family:var(--jpr);font-weight:700;font-size:1.24rem;color:var(--ink);margin-bottom:12px}
+  .str p{color:var(--ink-soft);font-size:.93rem}
+  .str .no{position:absolute;top:26px;right:30px;font-family:var(--disp);font-style:italic;font-size:1.3rem;color:var(--cream-3)}
+
+  /* ---------- services ---------- */
+  .services{background:var(--cream-2)}
+  .svc-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:22px}
+  .svc{background:#fff;border:1px solid var(--line);border-radius:var(--r);padding:32px;transition:.35s;position:relative;overflow:hidden;display:flex;flex-direction:column}
+  .svc.big{grid-column:span 3}
+  .svc.sm{grid-column:span 2}
+  .svc:hover{transform:translateY(-7px);box-shadow:var(--shadow)}
+  .svc .tag{font-family:var(--jpr);font-weight:700;font-size:.68rem;letter-spacing:.06em;padding:5px 12px;border-radius:999px;display:inline-block;margin-bottom:20px;width:fit-content}
+  .tag-main{background:rgba(244,124,102,.14);color:var(--coral-d)}
+  .tag-focus{background:rgba(111,176,160,.18);color:var(--sage-d)}
+  .tag-base{background:var(--cream-2);color:var(--ink-soft)}
+  .svc .ic{width:54px;height:54px;border-radius:50% 50% 14px 50%;display:grid;place-items:center;font-size:1.4rem;margin-bottom:20px}
+  .svc h3{font-family:var(--jpr);font-weight:700;font-size:1.2rem;color:var(--ink);margin-bottom:10px}
+  .svc.big h3{font-size:1.42rem}
+  .svc p{color:var(--ink-soft);font-size:.92rem;margin-bottom:20px}
+  .svc .more{margin-top:auto;font-family:var(--jpr);font-weight:700;font-size:.86rem;color:var(--coral-d);display:inline-flex;align-items:center;gap:6px}
+  .svc .more .arr{transition:.3s}
+  .svc:hover .more .arr{transform:translateX(5px)}
+
+  /* ---------- AI band (warm deep) ---------- */
+  .ai{background:linear-gradient(135deg,#4a322a,#5d3d31 55%,#6b4a3a);color:#fff;border-radius:36px;overflow:hidden;position:relative;margin:0 28px}
+  .ai-inner{max-width:var(--maxw);margin:0 auto;padding:84px 28px;display:grid;grid-template-columns:1fr 1fr;gap:56px;align-items:center}
+  .ai::before{content:"";position:absolute;inset:0;background:radial-gradient(50% 60% at 85% 25%,rgba(244,124,102,.4),transparent 60%),radial-gradient(45% 55% at 8% 95%,rgba(235,182,89,.3),transparent 60%)}
+  .ai>*{position:relative}
+  .ai .kicker{color:var(--peach)}
+  .ai .kicker::before{background:var(--peach)}
+  .ai h2{font-family:var(--jpr);font-weight:900;font-size:clamp(1.7rem,3vw,2.45rem);line-height:1.45;margin:16px 0 20px;color:#fff}
+  .ai p{color:rgba(255,255,255,.85);font-size:1rem;max-width:46ch}
+  .ai-flow{display:flex;flex-direction:column;gap:13px}
+  .flow-node{display:flex;align-items:center;gap:16px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.16);border-radius:18px;padding:16px 20px;backdrop-filter:blur(6px)}
+  .flow-node .step{font-family:var(--disp);font-style:italic;font-size:1rem;color:var(--peach);width:30px;flex-shrink:0}
+  .flow-node .lbl{font-family:var(--jpr);font-weight:700;font-size:.98rem}
+  .flow-node .desc{font-size:.78rem;color:rgba(255,255,255,.62);margin-left:auto;text-align:right}
+  .flow-node.hl{background:linear-gradient(120deg,rgba(244,124,102,.3),rgba(235,182,89,.2));border-color:rgba(255,198,166,.5)}
+
+  /* ---------- works ---------- */
+  .work-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:24px}
+  .work{border:1px solid var(--line);border-radius:var(--r);overflow:hidden;background:#fff;transition:.35s}
+  .work:hover{transform:translateY(-7px);box-shadow:var(--shadow)}
+  .work .cap{height:140px;position:relative;overflow:hidden;display:grid;place-items:center}
+  .work .cap.c1{background:linear-gradient(135deg,#ffe6d4,var(--peach))}
+  .work .cap.c2{background:linear-gradient(135deg,#ffd9c4,#ffb89e)}
+  .work .cap.c3{background:linear-gradient(135deg,#e3f0eb,#bfe0d6)}
+  .work .cap .emoji{font-size:3rem;filter:drop-shadow(0 6px 12px rgba(74,53,46,.18))}
+  .work .cap .badge{position:absolute;top:14px;left:14px;font-family:var(--jpr);font-weight:700;font-size:.68rem;background:#fff;padding:6px 12px;border-radius:999px;color:var(--coral-d)}
+  .work .body{padding:26px}
+  .work h3{font-family:var(--jpr);font-weight:700;font-size:1.08rem;color:var(--ink);margin-bottom:10px}
+  .work .body p{color:var(--ink-soft);font-size:.88rem}
+  .work .res{display:flex;align-items:baseline;gap:8px;margin-top:16px;padding-top:16px;border-top:1px dashed var(--line)}
+  .work .res .big{font-family:var(--disp);font-weight:700;font-size:1.8rem;color:var(--coral-d)}
+  .work .res .t{font-family:var(--jpr);font-size:.82rem;color:var(--ink-soft);font-weight:700}
+
+  /* ---------- flow / steps ---------- */
+  .steps{background:var(--cream-2)}
+  .step-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:22px;counter-reset:s}
+  .step-c{background:#fff;border:1px solid var(--line);border-radius:var(--r);padding:34px 28px;position:relative}
+  .step-c::before{counter-increment:s;content:counter(s);font-family:var(--disp);font-style:italic;font-weight:700;font-size:2.6rem;color:var(--peach);position:absolute;top:20px;right:26px;opacity:.5}
+  .step-c .ph{font-family:var(--disp);font-style:italic;font-size:.9rem;color:var(--sage-d)}
+  .step-c h3{font-family:var(--jpr);font-weight:700;font-size:1.1rem;color:var(--ink);margin:8px 0 10px}
+  .step-c p{color:var(--ink-soft);font-size:.86rem}
+
+  /* ---------- company ---------- */
+  .company-grid{display:grid;grid-template-columns:.85fr 1.15fr;gap:54px;align-items:center}
+  .co-card{background:#fff;border:1px solid var(--line);border-radius:26px;box-shadow:var(--shadow);overflow:hidden}
+  .co-card .top{background:linear-gradient(120deg,var(--coral),#ff9472);color:#fff;padding:28px 32px;display:flex;align-items:center;gap:15px}
+  .co-card .top .mark{position:relative;width:40px;height:40px;flex-shrink:0}
+  .co-card .top .mark .c1{position:absolute;width:28px;height:28px;border-radius:50%;background:rgba(255,255,255,.95);top:0;left:0}
+  .co-card .top .mark .c2{position:absolute;width:18px;height:18px;border-radius:50%;background:var(--gold);bottom:0;right:0}
+  .co-card .top h3{font-family:var(--disp);font-weight:700;font-size:1.6rem;letter-spacing:-.01em}
+  .co-card .top small{font-family:var(--jp);font-size:.6rem;opacity:.9;letter-spacing:.14em;display:block;margin-top:-2px}
+  .co-table{padding:12px 32px 26px}
+  .co-table .row{display:flex;gap:16px;padding:15px 0;border-bottom:1px dashed var(--line);font-size:.92rem}
+  .co-table .row:last-child{border:none}
+  .co-table .k{font-family:var(--jpr);font-weight:700;color:var(--ink-soft);width:84px;flex-shrink:0;font-size:.85rem}
+  .co-table .v{font-family:var(--jp);color:var(--ink)}
+  .co-table .v b{color:var(--ink);font-weight:700}
+
+  /* ---------- final CTA ---------- */
+  .cta{padding:112px 0}
+  .cta-box{background:linear-gradient(125deg,var(--coral),#ff9472 55%,var(--gold));border-radius:36px;padding:78px 40px;text-align:center;color:#fff;position:relative;overflow:hidden}
+  .cta-box::before{content:"";position:absolute;top:-80px;left:-60px;width:280px;height:280px;border-radius:50%;background:radial-gradient(circle,rgba(255,255,255,.28),transparent 65%)}
+  .cta-box::after{content:"";position:absolute;bottom:-100px;right:-60px;width:300px;height:300px;border-radius:50%;background:radial-gradient(circle,rgba(255,255,255,.18),transparent 65%)}
+  .cta-box>*{position:relative}
+  .cta-box h2{font-family:var(--jpr);font-weight:900;font-size:clamp(1.7rem,3.6vw,2.6rem);line-height:1.5;margin-bottom:16px;color:#fff}
+  .cta-box p{color:rgba(255,255,255,.92);margin-bottom:36px;font-size:1.05rem}
+  .cta-box .btn-primary{background:#fff;color:var(--coral-d);box-shadow:0 14px 36px rgba(0,0,0,.16)}
+  .cta-box .btn-ghost{background:transparent;border-color:rgba(255,255,255,.7);color:#fff}
+  .cta-box .btn-ghost:hover{background:rgba(255,255,255,.15);border-color:#fff;color:#fff}
+
+  /* ---------- footer ---------- */
+  footer{background:var(--deep);color:rgba(255,255,255,.76);padding:74px 0 30px;font-size:.9rem}
+  .foot-grid{display:grid;grid-template-columns:1.4fr 1fr 1fr 1.3fr;gap:40px;padding-bottom:48px;border-bottom:1px solid rgba(255,255,255,.12)}
+  .foot-logo{display:flex;align-items:center;gap:11px;font-family:var(--disp);font-weight:600;font-size:1.6rem;color:#fff;margin-bottom:18px}
+  .foot-logo .mark{position:relative;width:32px;height:32px}
+  .foot-logo .mark .c1{position:absolute;width:22px;height:22px;border-radius:50%;background:linear-gradient(135deg,var(--coral),var(--peach));top:0;left:0}
+  .foot-logo .mark .c2{position:absolute;width:14px;height:14px;border-radius:50%;background:var(--gold);bottom:0;right:0}
+  footer .desc{max-width:30ch;font-size:.85rem;line-height:1.85}
+  .foot-col h4{font-family:var(--jpr);font-weight:700;color:#fff;font-size:.92rem;margin-bottom:16px}
+  .foot-col ul{list-style:none;display:flex;flex-direction:column;gap:11px}
+  .foot-col a{transition:.2s;font-size:.86rem}
+  .foot-col a:hover{color:var(--peach)}
+  .foot-info{font-size:.82rem;line-height:1.95;font-style:normal}
+  .foot-info b{color:#fff;font-weight:500}
+  .copy{display:flex;justify-content:space-between;align-items:center;padding-top:26px;font-family:var(--jp);font-size:.74rem;color:rgba(255,255,255,.5);flex-wrap:wrap;gap:10px}
+  .copy .l{font-family:var(--disp);font-style:italic}
+
+  .reveal{opacity:0;transform:translateY(28px);transition:.8s cubic-bezier(.2,.7,.3,1)}
+  .reveal.in{opacity:1;transform:none}
+
+  @media(max-width:960px){
+    .hero-grid,.ai-inner,.company-grid{grid-template-columns:1fr;gap:44px}
+    .stat-grid{grid-template-columns:repeat(2,1fr)}
+    .str-grid{grid-template-columns:1fr}
+    .svc-grid{grid-template-columns:1fr}
+    .svc.big,.svc.sm{grid-column:span 1}
+    .work-grid{grid-template-columns:1fr}
+    .step-grid{grid-template-columns:repeat(2,1fr)}
+    .foot-grid{grid-template-columns:1fr 1fr;gap:30px}
+    nav ul,.nav-cta .btn{display:none}
+    .menu-btn{display:flex}
+    .hero{padding:128px 0 72px}
+  }
+  @media(max-width:560px){
+    .stat-grid,.step-grid,.foot-grid{grid-template-columns:1fr}
+    .wrap{padding:0 20px}
+    .ai{margin:0 16px}
+  }
+</style>
+</head>
+<body>
+
+<!-- ===== HEADER ===== -->
+<header id="hdr">
+  <div class="wrap nav">
+    <a href="#" class="logo">
+      <span class="mark"><span class="c1"></span><span class="c2"></span><span class="dot"></span></span>
+      <span>Hi-Fi<small>HIGH FIDELITY</small></span>
+    </a>
+    <nav>
+      <ul>
+        <li><a href="#services">サービス</a></li>
+        <li><a href="#ai">AIへの取り組み</a></li>
+        <li><a href="#works">実績</a></li>
+        <li><a href="#company">会社概要</a></li>
+        <li><a href="#news">お知らせ</a></li>
+      </ul>
+    </nav>
+    <div class="nav-cta">
+      <a href="#contact" class="btn btn-primary">お問い合わせ <span class="arr">→</span></a>
+      <button class="menu-btn" aria-label="メニュー"><span></span><span></span><span></span></button>
+    </div>
+  </div>
+</header>
+
+<!-- ===== HERO ===== -->
+<section class="hero">
+  <span class="blob blob-1"></span>
+  <div class="wrap hero-grid">
+    <div class="hero-copy">
+      <span class="kicker reveal">Tools · Workflow · AI</span>
+      <h1 class="reveal" style="transition-delay:.08s">あなたの<span class="hl">“面倒”</span>に、<br>やさしく寄り添う。</h1>
+      <p class="sub reveal" style="transition-delay:.16s">業務を簡単にするツール開発・ワークフロー改善から、SNS集客・動画編集まで。最新AIを活用し、個人・中小企業の“面倒”をまるごと軽くします。「何から相談すればいいかわからない」——そんな段階から、一緒に考えます。</p>
+      <div class="hero-actions reveal" style="transition-delay:.24s">
+        <a href="#contact" class="btn btn-primary">まずは無料で相談する <span class="arr">→</span></a>
+        <a href="#services" class="btn btn-ghost">サービスを見る</a>
+      </div>
+      <div class="hero-meta reveal" style="transition-delay:.32s">
+        <span class="pill"><b>High Fidelity</b> ＝ 高品質・忠実・クリア</span>
+        <span class="pill">横浜発・<b>全国対応</b></span>
+      </div>
+    </div>
+
+    <div class="hero-visual reveal" style="transition-delay:.2s">
+      <div class="glow-card">
+        <div class="gc-head">
+          <div class="gc-ava">🌿</div>
+          <div class="t">Hi-Fiが、こんなことをお手伝い<span>あなたに合わせて、ちょうどよく。</span></div>
+        </div>
+        <div class="gc-rows">
+          <div class="gc-row"><span class="ic" style="background:rgba(244,124,102,.16)">⚙️</span>面倒な業務を自動化<span class="v">-70%<small> 経費</small></span></div>
+          <div class="gc-row"><span class="ic" style="background:rgba(235,182,89,.2)">🎬</span>ショート動画運用<span class="v">3,000万<small> 再生/月</small></span></div>
+          <div class="gc-row"><span class="ic" style="background:rgba(111,176,160,.2)">📲</span>SNS集客をやさしく仕組み化<span class="v">+ 反響</span></div>
+        </div>
+      </div>
+      <div class="float-tag ft-1"><span class="em">🏆</span>YouTube<br>銀の盾 保有</div>
+      <div class="float-tag ft-2"><span class="em">🤝</span>寄り添う<br>伴走サポート</div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== STRIP ===== -->
+<div class="strip">
+  <div class="strip-track">
+    <span>業務効率化ツール開発 <i>●</i> ワークフロー簡易化 <i>●</i> SNS集客サポート <i>●</i> 動画編集 <i>●</i> 非属人制YouTube運営 <i>●</i> AI活用支援 <i>●</i></span>
+    <span>業務効率化ツール開発 <i>●</i> ワークフロー簡易化 <i>●</i> SNS集客サポート <i>●</i> 動画編集 <i>●</i> 非属人制YouTube運営 <i>●</i> AI活用支援 <i>●</i></span>
+  </div>
+</div>
+
+<!-- ===== STATS ===== -->
+<section class="sec stats">
+  <div class="wrap">
+    <div class="sec-head center reveal">
+      <span class="kicker">Our results</span>
+      <h2 class="title" style="margin-top:14px">数字が証明する、確かな実力</h2>
+      <p class="lead">非属人制でここまで伸ばせる。仕組みとAIで出した、リアルな成果です。</p>
+    </div>
+    <div class="stat-grid">
+      <div class="stat reveal"><div class="num" data-to="3000" data-suffix="万+">0</div><div class="lb">ショート動画 月間再生数</div><div class="sub">1チャンネルあたり</div></div>
+      <div class="stat reveal" style="transition-delay:.1s"><div class="num" data-to="500" data-suffix="万+">0</div><div class="lb">長尺動画 月間再生数</div><div class="sub">1チャンネルあたり</div></div>
+      <div class="stat reveal" style="transition-delay:.2s"><div class="num" data-to="70" data-suffix="%">0</div><div class="lb">経費を削減</div><div class="sub">AI管理ツールの導入で</div></div>
+      <div class="stat badge-stat reveal" style="transition-delay:.3s"><div class="shield">🏆</div><div class="shield-t">YouTube 銀の盾</div><div class="lb" style="margin-top:8px">登録者10万人達成の証</div><div class="sub">非属人制チャンネルで獲得</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== STRENGTHS ===== -->
+<section class="sec">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <span class="kicker">Why Hi-Fi</span>
+      <h2 class="title" style="margin-top:14px">選ばれる、3つの理由</h2>
+      <p class="lead">成果も、安心も、話しやすさも。ぜんぶ大事にしたいから、Hi-Fiは欲ばりです。</p>
+    </div>
+    <div class="str-grid">
+      <div class="str reveal">
+        <span class="no">01</span>
+        <div class="badge" style="background:linear-gradient(135deg,#ffe1d2,var(--peach))">⚡</div>
+        <h3>効率化に、とことん</h3>
+        <p>面倒な定型業務を、AIと独自ツールでシンプルに。AI管理ツールでは経費を7割削減した実績も。「やらなくていい仕事」を減らします。</p>
+      </div>
+      <div class="str reveal" style="transition-delay:.12s">
+        <div class="badge" style="background:linear-gradient(135deg,#fff0d6,var(--gold))">🛡️</div>
+        <span class="no">02</span>
+        <h3>実績ある法人の安心感</h3>
+        <p>銀行とのお取引もある法人として、契約・運用・情報管理まで誠実に。YouTubeでは銀の盾を獲得するなど、結果でも信頼にお応えします。</p>
+      </div>
+      <div class="str reveal" style="transition-delay:.24s">
+        <div class="badge" style="background:linear-gradient(135deg,#e3f0eb,#bfe0d6)">💬</div>
+        <span class="no">03</span>
+        <h3>とことん、寄り添う</h3>
+        <p>「難しそう」「高そう」を払拭。専門用語を並べず、いまのお悩みからやさしくご提案。小さな一歩から、ずっと一緒に伴走します。</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== SERVICES ===== -->
+<section class="sec services" id="services">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <span class="kicker">Services</span>
+      <h2 class="title" style="margin-top:14px">発信から効率化まで、<br>まるごとお手伝い。</h2>
+      <p class="lead">主軸は「ツール開発・ワークフロー簡易化」。集客や動画も含め、企業の“面倒”をまるごとお引き受けします。</p>
+    </div>
+    <div class="svc-grid">
+      <div class="svc big reveal">
+        <span class="tag tag-main">MAIN ・ 主力</span>
+        <div class="ic" style="background:linear-gradient(135deg,#ffe1d2,var(--peach))">⚙️</div>
+        <h3>業務効率化ツール開発</h3>
+        <p>「定型業務に時間が奪われている」を解決。あなたの業務に合わせた独自ツールを開発し、AI・自動化でムダを削ります。AI管理ツールでは経費7割削減も実現。導入から定着まで伴走します。</p>
+        <a class="more" href="#">詳しく見る <span class="arr">→</span></a>
+      </div>
+      <div class="svc big reveal" style="transition-delay:.1s">
+        <span class="tag tag-main">MAIN ・ 主力</span>
+        <div class="ic" style="background:linear-gradient(135deg,#fff0d6,var(--gold))">🔄</div>
+        <h3>業務効率化・運用サポート</h3>
+        <p>「日々の運用が回らない・属人化している」を解決。業務を仕組み化し、AIを活用した効率運用で、止まらない・ラクな体制をつくります。担当が変わっても続く運営へ。</p>
+        <a class="more" href="#">詳しく見る <span class="arr">→</span></a>
+      </div>
+      <div class="svc sm reveal">
+        <span class="tag tag-focus">FOCUS ・ 注力</span>
+        <div class="ic" style="background:linear-gradient(135deg,#e3f0eb,#bfe0d6)">📲</div>
+        <h3>SNS集客サポート</h3>
+        <p>Instagramを中心に、集客導線の設計と運用を支援。データ×AIで「問い合わせにつながる」発信へ。</p>
+        <a class="more" href="#">詳しく見る <span class="arr">→</span></a>
+      </div>
+      <div class="svc sm reveal" style="transition-delay:.1s">
+        <span class="tag tag-base">VIDEO</span>
+        <div class="ic" style="background:linear-gradient(135deg,#ffe6d4,#ffcaad)">🎬</div>
+        <h3>動画編集</h3>
+        <p>AI支援編集で、高品質な動画をスピーディに・均質に。量と質、どちらも妥協しません。</p>
+        <a class="more" href="#">詳しく見る <span class="arr">→</span></a>
+      </div>
+      <div class="svc sm reveal" style="transition-delay:.2s">
+        <span class="tag tag-base">YOUTUBE</span>
+        <div class="ic" style="background:linear-gradient(135deg,#ffded2,var(--coral))">▶️</div>
+        <h3>非属人制YouTube運営</h3>
+        <p>人に依存しない運営体制で、チャンネルを継続成長。<b>銀の盾獲得・月間3,000万再生</b>の実績で支えます。</p>
+        <a class="more" href="#">詳しく見る <span class="arr">→</span></a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== AI BAND ===== -->
+<section id="ai">
+  <div class="ai">
+    <div class="ai-inner">
+      <div>
+        <span class="kicker">AI at the core</span>
+        <h2>AIを“どこで・どう使うか”まで、<br>やさしく設計します。</h2>
+        <p>「AIを使っています」で終わらせません。企画から分析まで、各工程のどこにAIを組み込めば成果が出るかを設計し、品質は人がしっかり担保。新しいやり方を、地に足をつけて、わかりやすくお届けします。</p>
+        <div style="margin-top:30px"><a href="#contact" class="btn btn-primary" style="background:var(--peach);color:var(--ink);box-shadow:0 10px 26px rgba(255,198,166,.4)">AI活用の詳細を見る <span class="arr">→</span></a></div>
+      </div>
+      <div class="ai-flow">
+        <div class="flow-node"><span class="step">1</span><span class="lbl">企画・リサーチ</span><span class="desc">AIで素早く・多角的に</span></div>
+        <div class="flow-node hl"><span class="step">2</span><span class="lbl">ツール・自動化</span><span class="desc">面倒な作業を肩代わり</span></div>
+        <div class="flow-node"><span class="step">3</span><span class="lbl">制作・編集</span><span class="desc">AI支援で速く均質に</span></div>
+        <div class="flow-node"><span class="step">4</span><span class="lbl">分析・改善</span><span class="desc">データで次の一手を</span></div>
+        <div class="flow-node"><span class="step">5</span><span class="lbl">品質チェック</span><span class="desc">最後は人の目で担保</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== WORKS ===== -->
+<section class="sec" id="works">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <span class="kicker">Works</span>
+      <h2 class="title" style="margin-top:14px">成果で語る、実績</h2>
+      <p class="lead">課題 → 施策 → 結果。数字でわかる変化を、いくつかご紹介します。</p>
+    </div>
+    <div class="work-grid">
+      <div class="work reveal">
+        <div class="cap c1"><span class="badge">業務効率化</span><span class="emoji">⚙️</span></div>
+        <div class="body"><h3>AI管理ツールで経費を大幅圧縮</h3><p>手作業の管理業務をAIツール化し、運用コストを抜本的に削減。</p><div class="res"><span class="big">-70%</span><span class="t">経費を削減</span></div></div>
+      </div>
+      <div class="work reveal" style="transition-delay:.1s">
+        <div class="cap c2"><span class="badge">YouTube・ショート</span><span class="emoji">🎬</span></div>
+        <div class="body"><h3>非属人制チャンネルで銀の盾を獲得</h3><p>仕組み化された運営で、担当に依存せず継続的に大きく伸長。</p><div class="res"><span class="big">3,000万</span><span class="t">再生 / 月（ショート）</span></div></div>
+      </div>
+      <div class="work reveal" style="transition-delay:.2s">
+        <div class="cap c3"><span class="badge">YouTube・長尺</span><span class="emoji">📺</span></div>
+        <div class="body"><h3>長尺動画でも安定した再生数</h3><p>企画・台本・分析をAIで標準化し、長尺でも高い再生を実現。</p><div class="res"><span class="big">500万</span><span class="t">再生 / 月（長尺）</span></div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== FLOW ===== -->
+<section class="sec steps">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <span class="kicker">How it works</span>
+      <h2 class="title" style="margin-top:14px">ご相談から導入までの流れ</h2>
+    </div>
+    <div class="step-grid">
+      <div class="step-c reveal"><span class="ph">Contact</span><h3>お問い合わせ</h3><p>フォームまたはお電話で。「何を相談していいかわからない」段階でも大丈夫です。</p></div>
+      <div class="step-c reveal" style="transition-delay:.1s"><span class="ph">Hearing</span><h3>課題のヒアリング</h3><p>現状の業務やお悩みをお聞きし、改善できるポイントを一緒に整理します。</p></div>
+      <div class="step-c reveal" style="transition-delay:.2s"><span class="ph">Proposal</span><h3>ご提案・お見積り</h3><p>最適なサービスと進め方、費用感をわかりやすくご提案します。</p></div>
+      <div class="step-c reveal" style="transition-delay:.3s"><span class="ph">Start</span><h3>導入・運用支援</h3><p>導入して終わりではなく、定着・成果まで伴走してサポートします。</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== COMPANY ===== -->
+<section class="sec" id="company">
+  <div class="wrap company-grid">
+    <div class="co-info reveal">
+      <span class="kicker">Company</span>
+      <h2 class="title" style="margin:14px 0 16px">確かな実体が、<br>安心の土台です。</h2>
+      <p class="lead">横浜を拠点に、業務効率化とAI活用で事業者を支える法人です。銀行とのお取引もあり、契約・運用も誠実に対応します。</p>
+      <div style="margin-top:28px"><a href="#" class="btn btn-ghost">会社概要を詳しく <span class="arr">→</span></a></div>
+    </div>
+    <div class="co-card reveal" style="transition-delay:.12s">
+      <div class="top">
+        <span class="mark"><span class="c1"></span><span class="c2"></span></span>
+        <div><h3>株式会社Hi-Fi</h3><small>HIGH FIDELITY INC.</small></div>
+      </div>
+      <div class="co-table">
+        <div class="row"><span class="k">代表者</span><span class="v"><b>波江野 亮介</b></span></div>
+        <div class="row"><span class="k">設立</span><span class="v">2017年（平成29年）10月5日</span></div>
+        <div class="row"><span class="k">資本金</span><span class="v">100万円</span></div>
+        <div class="row"><span class="k">所在地</span><span class="v">〒220-0004<br>神奈川県横浜市西区北幸2丁目10番地28 むつみビル3F</span></div>
+        <div class="row"><span class="k">事業内容</span><span class="v">業務効率化ツール開発／運用サポート／SNS集客／動画編集／非属人制YouTube運営</span></div>
+        <div class="row"><span class="k">連絡先</span><span class="v" style="color:var(--ink-soft)">※ 確定後に記載（TEL／メール）</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== FINAL CTA ===== -->
+<section class="cta" id="contact">
+  <div class="wrap">
+    <div class="cta-box reveal">
+      <h2>その“面倒”、<br>Hi-Fiにまかせてみませんか。</h2>
+      <p>ご相談・お見積りは無料です。いまのお悩みから、お気軽にどうぞ。</p>
+      <div class="hero-actions" style="justify-content:center">
+        <a href="#" class="btn btn-primary">まずは無料で相談する <span class="arr">→</span></a>
+        <a href="#" class="btn btn-ghost">資料をダウンロード</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== FOOTER ===== -->
+<footer id="news">
+  <div class="wrap">
+    <div class="foot-grid">
+      <div>
+        <div class="foot-logo"><span class="mark"><span class="c1"></span><span class="c2"></span></span>Hi-Fi</div>
+        <p class="desc">High Fidelity ＝ 高品質・忠実・クリア。AIと仕組みで、あなたのビジネスにやさしく寄り添います。</p>
+      </div>
+      <div class="foot-col">
+        <h4>サービス</h4>
+        <ul>
+          <li><a href="#services">業務効率化ツール開発</a></li>
+          <li><a href="#services">運用サポート</a></li>
+          <li><a href="#services">SNS集客サポート</a></li>
+          <li><a href="#services">動画編集</a></li>
+          <li><a href="#services">非属人制YouTube運営</a></li>
+        </ul>
+      </div>
+      <div class="foot-col">
+        <h4>会社情報</h4>
+        <ul>
+          <li><a href="#company">会社概要</a></li>
+          <li><a href="#ai">AIへの取り組み</a></li>
+          <li><a href="#works">実績</a></li>
+          <li><a href="#news">お知らせ</a></li>
+          <li><a href="#contact">お問い合わせ</a></li>
+        </ul>
+      </div>
+      <div class="foot-col">
+        <h4>株式会社Hi-Fi</h4>
+        <address class="foot-info">
+          〒220-0004<br>
+          神奈川県横浜市西区北幸<br>2丁目10番地28 むつみビル3F<br>
+          代表：<b>波江野 亮介</b><br>
+          設立：2017年10月　資本金：100万円
+        </address>
+      </div>
+    </div>
+    <div class="copy">
+      <span class="l">© 2026 Hi-Fi Inc. All rights reserved.</span>
+      <span style="display:flex;gap:18px"><a href="#" style="color:inherit">プライバシーポリシー</a><a href="#" style="color:inherit">特定商取引法に基づく表記</a></span>
+    </div>
+  </div>
+</footer>
+
+<script>
+  const hdr=document.getElementById('hdr');
+  addEventListener('scroll',()=>hdr.classList.toggle('scrolled',scrollY>20));
+
+  // reveal on scroll
+  const io=new IntersectionObserver((es)=>{es.forEach(e=>{if(e.isIntersecting){e.target.classList.add('in');io.unobserve(e.target);}})},{threshold:.15});
+  document.querySelectorAll('.reveal').forEach(el=>io.observe(el));
+
+  // count up
+  const fmt=n=>n.toLocaleString('ja-JP');
+  const countIO=new IntersectionObserver((es)=>{es.forEach(e=>{
+    if(!e.isIntersecting)return; countIO.unobserve(e.target);
+    const el=e.target,to=+el.dataset.to,suffix=el.dataset.suffix||'',dur=1500,t0=performance.now();
+    (function tick(now){let p=Math.min((now-t0)/dur,1);p=1-Math.pow(1-p,3);
+      const val=Math.round(to*p);
+      el.innerHTML=fmt(val)+(suffix?'<span class="u">'+suffix+'</span>':'');
+      if(p<1)requestAnimationFrame(tick);})(t0);
+  })},{threshold:.6});
+  document.querySelectorAll('.num[data-to]').forEach(el=>countIO.observe(el));
+</script>
+</body>
+</html>
