@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<!-- OGP画像の生成元。1200x630で撮影して assets/ogp.png に書き出す -->
+<html lang="ja">
+<head>
+<meta charset="UTF-8" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho+B1:wght@700;800&family=Inter:wght@500;600&display=swap" rel="stylesheet" />
+<style>
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{
+    width:1200px;height:630px;background:#F7F5EF;color:#211E18;
+    font-family:"Shippori Mincho B1",serif;overflow:hidden;position:relative;
+    display:flex;flex-direction:column;justify-content:space-between;
+    padding:56px 72px 48px;
+  }
+  .bar{
+    display:flex;justify-content:space-between;align-items:center;
+    padding-bottom:24px;border-bottom:2px solid #211E18;
+    font-family:"Inter",sans-serif;font-size:19px;letter-spacing:.16em;
+    color:#6B655A;text-transform:uppercase;font-weight:600;
+  }
+  .bar b{color:#211E18}
+  h1{
+    font-weight:800;font-size:88px;line-height:1.5;letter-spacing:.01em;
+  }
+  h1 em{font-style:normal;color:#0E6B5C}
+  .foot{
+    display:flex;justify-content:space-between;align-items:flex-end;
+    padding-top:24px;border-top:2px solid #211E18;
+  }
+  .logo{font-family:"Inter",sans-serif;font-weight:600;font-size:44px;letter-spacing:-.03em;display:flex;align-items:center;gap:16px}
+  .logo .mk{width:40px;height:40px;border-radius:9px;background:#0E6B5C;position:relative;flex-shrink:0}
+  .logo .mk::after{content:"";position:absolute;inset:11px;border-radius:4px;background:#F7F5EF}
+  .tag{font-family:"Inter",sans-serif;font-size:19px;letter-spacing:.14em;color:#6B655A;text-transform:uppercase;font-weight:600}
+</style>
+</head>
+<body>
+  <div class="bar"><span><b>Hi-Fi</b> — High Fidelity Inc.</span><span>業務の仕組み化 × AI</span></div>
+  <h1>面倒な仕事が、<br>朝には<em>終わっている</em>。</h1>
+  <div class="foot">
+    <span class="logo"><span class="mk"></span>Hi-Fi</span>
+    <span class="tag">Systems &amp; AI Engineering — Yokohama</span>
+  </div>
+</body>
+</html>

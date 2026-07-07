@@ -5,6 +5,35 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>株式会社Hi-Fi｜面倒な仕事が、朝には終わっている。</title>
 <meta name="description" content="株式会社Hi-Fiは、毎日の決まった仕事を「自動で回る仕組み」に変える会社です。業務効率化ツール開発・ワークフロー設計を主軸に、SNS集客・動画制作・YouTube運営まで支援。経費7割削減、YouTube銀の盾の実績。" />
+<link rel="icon" type="image/svg+xml" href="assets/favicon.svg" />
+<!-- OGP: 公開時に og:image / og:url をドメインを含む絶対URLへ差し替えること -->
+<meta property="og:type" content="website" />
+<meta property="og:site_name" content="株式会社Hi-Fi" />
+<meta property="og:title" content="株式会社Hi-Fi｜面倒な仕事が、朝には終わっている。" />
+<meta property="og:description" content="毎日の決まった仕事を「自動で回る仕組み」に変える会社です。経費7割削減、YouTube銀の盾の実績。" />
+<meta property="og:image" content="assets/ogp.png" />
+<meta property="og:locale" content="ja_JP" />
+<meta name="twitter:card" content="summary_large_image" />
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Organization",
+  "name": "株式会社Hi-Fi",
+  "alternateName": "HIGH FIDELITY INC.",
+  "foundingDate": "2017-10-05",
+  "founder": {"@type": "Person", "name": "波江野 亮介"},
+  "address": {
+    "@type": "PostalAddress",
+    "postalCode": "220-0004",
+    "addressRegion": "神奈川県",
+    "addressLocality": "横浜市西区",
+    "streetAddress": "北幸2丁目10番地28 むつみビル3F",
+    "addressCountry": "JP"
+  },
+  "description": "業務効率化ツール開発・ワークフロー設計を主軸に、SNS集客・動画制作・YouTube運営までAIを活用して支援する会社。",
+  "knowsAbout": ["業務効率化", "ワークフロー自動化", "AI導入設計", "YouTube運営", "SNS集客"]
+}
+</script>
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho+B1:wght@600;700;800&family=Inter:wght@400;500;600&family=Zen+Kaku+Gothic+New:wght@400;500;700&display=swap" rel="stylesheet" />
@@ -63,6 +92,11 @@
 
   .reveal{opacity:0;transform:translateY(22px);transition:.9s cubic-bezier(.2,.7,.3,1)}
   .reveal.in{opacity:1;transform:none}
+  @media(prefers-reduced-motion:reduce){
+    html{scroll-behavior:auto}
+    .reveal{opacity:1;transform:none;transition:none}
+    *,*::before,*::after{animation-duration:.01ms !important;animation-iteration-count:1 !important;transition-duration:.01ms !important}
+  }
 
   /* ---------- top meta ---------- */
   .meta-bar{
@@ -142,12 +176,23 @@
   .stp[data-state="run"] .st{color:var(--teal)}
   .stp[data-state="run"] .st::before{content:"";width:7px;height:7px;border-radius:50%;background:var(--teal);animation:pulse 1.1s infinite}
   .stp[data-state="wait"]{opacity:.62}
+  .stp[data-tip]::after{
+    content:attr(data-tip);position:absolute;left:12px;right:12px;bottom:calc(100% + 8px);
+    background:var(--ink);color:var(--paper);font-size:.7rem;line-height:1.7;font-weight:400;
+    padding:10px 14px;border-radius:10px;opacity:0;pointer-events:none;transition:.25s;
+    transform:translateY(4px);z-index:5;box-shadow:0 12px 30px rgba(33,30,24,.25);
+  }
+  @media(hover:hover){
+    .stp[data-tip]:hover::after{opacity:1;transform:none}
+    .stp[data-tip]:hover{opacity:1}
+  }
   .demo-foot{border-top:1px solid var(--line);display:grid;grid-template-columns:1fr 1fr 1fr;background:var(--paper-3)}
   .demo-foot>div{padding:16px 22px;border-right:1px solid var(--line)}
   .demo-foot>div:last-child{border-right:none}
   .demo-foot .v{font-family:var(--serif);font-weight:800;font-size:1.35rem;color:var(--teal)}
   .demo-foot .v.n{color:var(--ink)}
   .demo-foot .k{font-size:.68rem;color:var(--ink-2);margin-top:2px}
+  .demo-note{font-size:.7rem;color:var(--ink-2);margin-top:12px;line-height:1.8;opacity:.85}
 
   /* ---------- ledger ---------- */
   .ledger-wrap{border-top:1px solid var(--line-d);padding-bottom:56px}
@@ -224,9 +269,53 @@
   }
   .case h3{font-family:var(--serif);font-weight:700;font-size:1.18rem;line-height:1.75;margin-bottom:12px}
   .case p{font-size:.86rem;color:var(--ink-2);line-height:2}
-  .case .res{margin-top:auto;padding-top:24px;display:flex;align-items:baseline;gap:10px;border-top:1px solid var(--line)}
-  .case .res .big{font-family:var(--serif);font-weight:800;font-size:2.1rem;color:var(--teal)}
-  .case .res .t{font-size:.78rem;color:var(--ink-2);line-height:1.6}
+  .case .ba{margin-top:auto;padding-top:8px}
+  .case .ba>div{
+    display:flex;align-items:baseline;gap:16px;padding:13px 0;border-top:1px solid var(--line);
+  }
+  .case .ba .bl{
+    font-family:var(--lat);font-size:.6rem;letter-spacing:.14em;font-weight:600;
+    color:var(--ink-2);width:44px;flex-shrink:0;text-transform:uppercase;padding-top:2px;
+  }
+  .case .ba .a .bl{color:var(--teal)}
+  .case .ba .bv{font-size:.86rem;color:var(--ink-2);line-height:1.7}
+  .case .ba .bv.big{font-family:var(--serif);font-weight:800;font-size:1.55rem;color:var(--teal);line-height:1.4}
+
+  /* ---------- simulator ---------- */
+  .sim-grid{display:grid;grid-template-columns:1.05fr .95fr;gap:56px;margin-top:64px;align-items:stretch}
+  .sim-panel{display:flex;flex-direction:column;justify-content:center}
+  .sim-row{padding:26px 0;border-bottom:1px solid var(--line)}
+  .sim-row:first-child{padding-top:0}
+  .sim-row label{
+    display:flex;justify-content:space-between;align-items:baseline;gap:20px;
+    font-size:.92rem;font-weight:500;margin-bottom:16px;
+  }
+  .sim-row label b{
+    font-family:var(--serif);font-weight:800;font-size:1.3rem;color:var(--teal);
+    white-space:nowrap;flex-shrink:0;
+  }
+  .sim-row input[type="range"]{
+    width:100%;accent-color:var(--teal);cursor:pointer;height:22px;
+  }
+  .sim-note{font-size:.7rem;color:var(--ink-2);margin-top:20px;line-height:1.9}
+  .sim-result{
+    background:var(--paper-2);border:1px solid var(--line);border-radius:20px;
+    padding:44px 42px;display:flex;flex-direction:column;
+    box-shadow:0 24px 60px rgba(33,30,24,.08);
+  }
+  .sim-result .sr-label{
+    font-family:var(--lat);font-size:.66rem;letter-spacing:.16em;color:var(--ink-2);
+    font-weight:600;text-transform:uppercase;padding-bottom:18px;border-bottom:1px solid var(--line);
+  }
+  .sim-result .sr-num{
+    font-family:var(--serif);font-weight:800;font-size:clamp(2.2rem,3.4vw,3rem);
+    line-height:1.3;margin-top:22px;
+  }
+  .sim-result .sr-num small{font-size:.42em;font-weight:700;margin-left:6px;color:var(--ink-2)}
+  .sim-result .sr-num.teal{color:var(--teal)}
+  .sim-result .sr-num.teal small{color:var(--teal);opacity:.75}
+  .sim-result .sr-cap{font-size:.84rem;color:var(--ink-2);margin:18px 0 30px;line-height:2}
+  .sim-result .btn-fill{align-self:flex-start;margin-top:auto}
 
   /* ---------- flow ---------- */
   .flow-wrap{background:var(--paper-3);border-block:1px solid var(--line)}
@@ -243,6 +332,23 @@
   .co-table .k{font-family:var(--lat);font-size:.68rem;letter-spacing:.14em;color:var(--ink-2);width:110px;flex-shrink:0;font-weight:600;text-transform:uppercase;padding-top:5px}
   .co-table .v{line-height:2}
   .co-table .v b{font-weight:700}
+
+  /* ---------- FAQ ---------- */
+  .faq-wrap{background:var(--paper-3);border-top:1px solid var(--line)}
+  .faq-list{max-width:820px;margin-top:56px;border-top:1px solid var(--line-d)}
+  .faq-item{border-bottom:1px solid var(--line)}
+  .faq-item summary{
+    font-family:var(--serif);font-weight:700;font-size:1.06rem;line-height:1.8;
+    padding:24px 44px 24px 0;cursor:pointer;list-style:none;position:relative;transition:.2s;
+  }
+  .faq-item summary::-webkit-details-marker{display:none}
+  .faq-item summary::after{
+    content:"＋";position:absolute;right:4px;top:50%;transform:translateY(-50%);
+    font-family:var(--lat);font-weight:500;color:var(--teal);font-size:1.1rem;transition:.25s;
+  }
+  .faq-item[open] summary::after{content:"−"}
+  .faq-item summary:hover{color:var(--teal)}
+  .faq-item p{font-size:.9rem;color:var(--ink-2);line-height:2.1;padding:0 44px 26px 0;max-width:70ch}
 
   /* ---------- CTA ---------- */
   .cta{padding:128px 0 120px;text-align:center;border-top:1px solid var(--line-d)}
@@ -286,6 +392,8 @@
     .flow-grid{grid-template-columns:1fr;border-left:none}
     .flow-step{border-right:none;border-bottom:1px solid var(--line);padding:24px 0}
     .co-grid{grid-template-columns:1fr;gap:44px}
+    .sim-grid{grid-template-columns:1fr;gap:40px}
+    .sim-result{padding:34px 28px}
     .demo-foot{grid-template-columns:1fr}
     .demo-foot>div{border-right:none;border-bottom:1px solid var(--line)}
     .sec{padding:72px 0}
@@ -321,6 +429,7 @@
       <ul>
         <li><a href="#services">できること</a></li>
         <li><a href="#cases">導入事例</a></li>
+        <li><a href="#simulate">かんたん試算</a></li>
         <li><a href="#ai">AIとの向き合い方</a></li>
         <li><a href="#company">会社概要</a></li>
       </ul>
@@ -338,6 +447,7 @@
   <ul>
     <li><a href="#services">できること</a></li>
     <li><a href="#cases">導入事例</a></li>
+    <li><a href="#simulate">かんたん試算</a></li>
     <li><a href="#ai">AIとの向き合い方</a></li>
     <li><a href="#company">会社概要</a></li>
     <li><a href="#contact">相談してみる</a></li>
@@ -362,7 +472,7 @@
   </div>
 
   <div class="reveal" style="transition-delay:.15s">
-    <div class="demo-cap"><b>いま動いている仕組み（実例）</b><span>毎朝 9:00 自動実行</span></div>
+    <div class="demo-cap"><b>導入すると、こう動く</b><span>モデルケース — 毎朝 9:00 自動実行</span></div>
     <div class="demo" id="demo">
       <div class="demo-head">
         <span class="mk"><svg viewBox="0 0 24 24" fill="none" stroke="#0E6B5C" stroke-width="2"><path d="M12 3v3M12 18v3M3 12h3M18 12h3M5.6 5.6l2.1 2.1M16.3 16.3l2.1 2.1M18.4 5.6l-2.1 2.1M7.7 16.3l-2.1 2.1"/><circle cx="12" cy="12" r="3.5"/></svg></span>
@@ -370,27 +480,27 @@
         <small>DAILY-OPS / RUNNING</small>
       </div>
       <div class="steps">
-        <div class="stp" data-state="wait">
+        <div class="stp" data-state="wait" data-tip="基幹システム・メール・スプレッドシートなど、いまお使いの道具とそのまま連携します。">
           <span class="ic" style="background:rgba(31,163,124,.1)"><svg viewBox="0 0 24 24" fill="none" stroke="#1FA37C" stroke-width="2"><path d="M4 5h16v14H4z"/><path d="M4 10h16M9 5v14"/></svg></span>
           <span class="tx"><h4>昨日の受注データを集める</h4><p>142件 — 3つのシステムから自動で取得</p></span>
           <span class="st">待機中</span>
         </div>
-        <div class="stp" data-state="wait">
+        <div class="stp" data-state="wait" data-tip="御社の過去の処理パターンを学んだAIが内容を確認。確信が持てないものは自動で人に回します。">
           <span class="ic" style="background:rgba(31,163,124,.1)"><svg viewBox="0 0 24 24" fill="none" stroke="#1FA37C" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M8.5 12.5l2.5 2.5 4.5-5"/></svg></span>
           <span class="tx"><h4>内容をAIが確認・仕分け</h4><p>精度 99.2% — 迷ったものは人へ回す</p></span>
           <span class="st">待機中</span>
         </div>
-        <div class="stp" data-state="wait">
+        <div class="stp" data-state="wait" data-tip="御社の書式・テンプレートに沿って自動作成。転記ミスや計算ミスが起きません。">
           <span class="ic" style="background:var(--teal-soft)"><svg viewBox="0 0 24 24" fill="none" stroke="#0E6B5C" stroke-width="2"><path d="M6 3h9l5 5v13H6z"/><path d="M14 3v6h6M9 13h6M9 17h6"/></svg></span>
           <span class="tx"><h4>請求書をつくる</h4><p>142件 — ミスなく一括作成</p></span>
           <span class="st">待機中</span>
         </div>
-        <div class="stp" data-state="wait">
+        <div class="stp" data-state="wait" data-tip="全部を見る必要はありません。確認が必要な件だけが、普段お使いのチャットに届きます。">
           <span class="ic" style="background:rgba(217,154,43,.12)"><svg viewBox="0 0 24 24" fill="none" stroke="#D99A2B" stroke-width="2"><path d="M12 4l8.5 15h-17z"/><path d="M12 10v4M12 17.2v.3"/></svg></span>
           <span class="tx"><h4>気になるものだけ、人に知らせる</h4><p>4件 — 担当者のチャットへ通知</p></span>
           <span class="st">待機中</span>
         </div>
-        <div class="stp" data-state="wait">
+        <div class="stp" data-state="wait" data-tip="承認はボタンひとつ。誰がいつ承認したかの履歴も自動で残ります。">
           <span class="ic" style="background:rgba(33,30,24,.07)"><svg viewBox="0 0 24 24" fill="none" stroke="#211E18" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg></span>
           <span class="tx"><h4>最後は人が承認する</h4><p>AI任せにしない、確認のひと手間</p></span>
           <span class="st">待機中</span>
@@ -402,6 +512,7 @@
         <div><div class="v">0件</div><div class="k">導入後の請求ミス</div></div>
       </div>
     </div>
+    <p class="demo-note">※ 実際の導入設計をもとにしたモデルケースです。数値は業務内容により異なります。</p>
   </div>
 </section>
 
@@ -504,19 +615,63 @@
         <span class="tag">業務効率化</span>
         <h3>手作業の管理業務を、AIツールへ</h3>
         <p>毎日数時間かかっていた管理業務を自社開発のAIツールに置き換え。運用コストを抜本的に削減しました。</p>
-        <div class="res"><span class="big">−70%</span><span class="t">運用経費<br>を削減</span></div>
+        <div class="ba">
+          <div class="b"><span class="bl">以前</span><span class="bv">手作業で毎日数時間</span></div>
+          <div class="a"><span class="bl">導入後</span><span class="bv big">経費 −70%</span></div>
+        </div>
       </div>
       <div class="case reveal" style="transition-delay:.1s">
         <span class="tag">YouTube運営</span>
         <h3>担当者に頼らない運営で、銀の盾</h3>
         <p>企画・制作・分析を仕組み化し、特定の担当者に依存しない体制へ。登録者10万人を達成しました。</p>
-        <div class="res"><span class="big">3,000万</span><span class="t">再生 / 月<br>（ショート動画）</span></div>
+        <div class="ba">
+          <div class="b"><span class="bl">以前</span><span class="bv">担当者しか回せない運営</span></div>
+          <div class="a"><span class="bl">導入後</span><span class="bv big">3,000万再生 / 月</span></div>
+        </div>
       </div>
       <div class="case reveal" style="transition-delay:.2s">
         <span class="tag">YouTube運営</span>
         <h3>長尺動画も、仕組みで安定成長</h3>
         <p>企画と台本づくりの工程を標準化。長尺動画でも、属人性なく高い再生数を維持しています。</p>
-        <div class="res"><span class="big">500万</span><span class="t">再生 / 月<br>（長尺動画）</span></div>
+        <div class="ba">
+          <div class="b"><span class="bl">以前</span><span class="bv">企画も台本も属人まかせ</span></div>
+          <div class="a"><span class="bl">導入後</span><span class="bv big">500万再生 / 月</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== SIMULATOR ===== -->
+<section class="sec" id="simulate">
+  <div class="frame">
+    <div class="reveal">
+      <div class="kicker">Simulation</div>
+      <h2 class="title">御社の数字で、<em>試して</em>みてください。</h2>
+      <p class="lead">毎日の決まった作業を思い浮かべて、3つのつまみを動かすだけ。仕組み化で取り戻せる時間と費用の目安が、その場でわかります。</p>
+    </div>
+    <div class="sim-grid reveal">
+      <div class="sim-panel">
+        <div class="sim-row">
+          <label for="simH">その作業に、1日どのくらいかかっていますか？<b><span id="simHv">2.0</span> 時間</b></label>
+          <input type="range" id="simH" min="0.5" max="8" step="0.5" value="2" />
+        </div>
+        <div class="sim-row">
+          <label for="simP">何人で担当していますか？<b><span id="simPv">2</span> 人</b></label>
+          <input type="range" id="simP" min="1" max="20" step="1" value="2" />
+        </div>
+        <div class="sim-row">
+          <label for="simW">時給に換算すると、いくらぐらいですか？<b><span id="simWv">2,500</span> 円</b></label>
+          <input type="range" id="simW" min="1000" max="10000" step="500" value="2500" />
+        </div>
+        <p class="sim-note">※ 年間245営業日、仕組み化による削減率70%（自社実績をもとにした想定値）で計算しています。</p>
+      </div>
+      <div class="sim-result">
+        <div class="sr-label">仕組み化で、取り戻せる目安</div>
+        <div class="sr-num"><span id="simHours">686</span><small>時間 / 年</small></div>
+        <div class="sr-num teal">約 <span id="simYen">171</span><small>万円 / 年</small></div>
+        <p class="sr-cap">この時間が、御社ではどんな仕事に使えるでしょうか。</p>
+        <a href="#contact" class="btn-fill">この結果をもとに相談する →</a>
       </div>
     </div>
   </div>
@@ -558,6 +713,39 @@
   </div>
 </section>
 
+<!-- ===== FAQ ===== -->
+<section class="sec faq-wrap" id="faq">
+  <div class="frame">
+    <div class="reveal">
+      <div class="kicker">FAQ</div>
+      <h2 class="title">よくある、ご不安。</h2>
+      <p class="lead">問い合わせの前に多くの方が迷われることを、先にお答えしておきます。</p>
+    </div>
+    <div class="faq-list reveal">
+      <details class="faq-item" open>
+        <summary>AIやパソコンに詳しい社員がいなくても、頼めますか？</summary>
+        <p>はい、むしろそういうお客様がほとんどです。ヒアリングは専門用語を使わず、いまの仕事の流れを伺うところから始めます。導入後の使い方も、現場の言葉でご説明します。</p>
+      </details>
+      <details class="faq-item">
+        <summary>AIが間違えたときは、どうなりますか？</summary>
+        <p>間違えても業務が止まらないように設計します。AIが判断に迷ったものは自動で担当者に回り、お金や信用に関わる判断は必ず人の承認を挟みます。AIだけで完結する仕組みは作りません。</p>
+      </details>
+      <details class="faq-item">
+        <summary>うちのような小さな会社でも、費用に見合いますか？</summary>
+        <p>個人事業から中小企業まで対応しています。最初に「どのくらいの時間と費用を取り戻せるか」を数字でお見せし、見合わない場合ははっきりそうお伝えします。小さく始めて、効果が出た部分だけ広げるやり方もできます。</p>
+      </details>
+      <details class="faq-item">
+        <summary>業務を丸ごとお任せすることはできますか？</summary>
+        <p>できます。仕組みを作って終わりではなく、日々の運用ごとお預かりする形も選べます。YouTubeチャンネルの運営代行では、この形で銀の盾（登録者10万人）まで到達しました。</p>
+      </details>
+      <details class="faq-item">
+        <summary>社内のデータを渡すのが不安です。</summary>
+        <p>秘密保持契約を結んだうえで、必要最小限のデータのみお預かりします。外部のAIサービスを使う場合は、何をどこまで渡すかを事前にご説明し、合意いただいてから進めます。</p>
+      </details>
+    </div>
+  </div>
+</section>
+
 <!-- ===== CTA ===== -->
 <section class="cta" id="contact">
   <div class="frame">
@@ -584,7 +772,8 @@
       <ul>
         <li><a href="#services">できること</a></li>
         <li><a href="#cases">導入事例</a></li>
-        <li><a href="#ai">AIとの向き合い方</a></li>
+        <li><a href="#simulate">かんたん試算</a></li>
+        <li><a href="#faq">よくあるご不安</a></li>
         <li><a href="#company">会社概要</a></li>
         <li><a href="#contact">お問い合わせ</a></li>
       </ul>
@@ -611,6 +800,21 @@
   const io=new IntersectionObserver(es=>{es.forEach(e=>{if(e.isIntersecting){e.target.classList.add('in');io.unobserve(e.target);}})},{threshold:.12});
   document.querySelectorAll('.reveal').forEach(el=>io.observe(el));
 
+  // simulator
+  const simH=document.getElementById('simH'),simP=document.getElementById('simP'),simW=document.getElementById('simW');
+  const yen=n=>n.toLocaleString('ja-JP');
+  function simCalc(){
+    const h=+simH.value,p=+simP.value,w=+simW.value;
+    document.getElementById('simHv').textContent=h.toFixed(1);
+    document.getElementById('simPv').textContent=p;
+    document.getElementById('simWv').textContent=yen(w);
+    const saved=h*p*245*0.7;
+    document.getElementById('simHours').textContent=yen(Math.round(saved));
+    document.getElementById('simYen').textContent=yen(Math.round(saved*w/10000));
+  }
+  [simH,simP,simW].forEach(el=>el.addEventListener('input',simCalc));
+  simCalc();
+
   // demo panel: steps advance automatically in a loop
   const steps=[...document.querySelectorAll('#demo .stp')];
   const labels={wait:'待機中',run:'実行中',done:'完了'};
@@ -627,9 +831,13 @@
       setTimeout(()=>{steps.forEach(s=>setState(s,'wait'));idx=-1;setTimeout(tick,900);},3600);
     }
   }
-  // start once the demo is visible
-  const demoIO=new IntersectionObserver(es=>{es.forEach(e=>{if(e.isIntersecting){demoIO.disconnect();setTimeout(tick,800);}})},{threshold:.3});
-  demoIO.observe(document.getElementById('demo'));
+  // start once the demo is visible; respect reduced-motion preference
+  if(matchMedia('(prefers-reduced-motion: reduce)').matches){
+    steps.forEach(s=>setState(s,'done'));
+  }else{
+    const demoIO=new IntersectionObserver(es=>{es.forEach(e=>{if(e.isIntersecting){demoIO.disconnect();setTimeout(tick,800);}})},{threshold:.3});
+    demoIO.observe(document.getElementById('demo'));
+  }
 </script>
 </body>
 </html>
