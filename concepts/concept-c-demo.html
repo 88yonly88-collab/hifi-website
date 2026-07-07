@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>株式会社Hi-Fi｜私たちの提案書は、動きます。</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Zen+Kaku+Gothic+New:wght@400;500;700;900&display=swap" rel="stylesheet" />
+<style>
+  :root{
+    --bg:#FAFAF7;
+    --ink:#16181D;
+    --ink-2:#5C6270;
+    --line:#E4E4DD;
+    --vio:#5B48EE;
+    --vio-soft:rgba(91,72,238,.08);
+    --green:#0CBF7C;
+    --amber:#F5A623;
+    --card:#FFFFFF;
+    --jp:"Zen Kaku Gothic New",sans-serif;
+    --lat:"Inter",sans-serif;
+    --mono:"JetBrains Mono",monospace;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{
+    background:var(--bg);color:var(--ink);font-family:var(--jp);
+    line-height:1.9;-webkit-font-smoothing:antialiased;overflow-x:hidden;
+  }
+  a{color:inherit;text-decoration:none}
+  .frame{max-width:1240px;margin:0 auto;padding:0 36px}
+
+  /* dotted background */
+  .dots{
+    position:fixed;inset:0;z-index:0;pointer-events:none;
+    background-image:radial-gradient(rgba(22,24,29,.07) 1px,transparent 1px);
+    background-size:26px 26px;
+    mask-image:radial-gradient(90% 70% at 50% 30%,#000 30%,transparent 100%);
+  }
+  .z{position:relative;z-index:1}
+
+  /* ---------- header ---------- */
+  header{border-bottom:1px solid var(--line);background:rgba(250,250,247,.9);backdrop-filter:blur(10px)}
+  .nav{display:flex;align-items:center;justify-content:space-between;height:68px}
+  .logo{font-family:var(--lat);font-weight:700;font-size:1.25rem;letter-spacing:-.03em;display:flex;align-items:center;gap:9px}
+  .logo .mk{width:22px;height:22px;border-radius:6px;background:var(--vio);position:relative}
+  .logo .mk::after{content:"";position:absolute;inset:6px;border-radius:3px;background:#fff}
+  nav ul{display:flex;gap:34px;list-style:none;font-size:.86rem;font-weight:500;color:var(--ink-2)}
+  nav a:hover{color:var(--vio)}
+  .cta{
+    font-weight:700;font-size:.84rem;background:var(--ink);color:#fff;
+    border-radius:10px;padding:11px 24px;transition:.25s;
+  }
+  .cta:hover{background:var(--vio)}
+
+  /* ---------- hero copy ---------- */
+  .hero{padding:84px 0 60px;text-align:center}
+  .pill{
+    display:inline-flex;align-items:center;gap:9px;font-family:var(--mono);font-size:.7rem;
+    letter-spacing:.06em;color:var(--vio);background:var(--vio-soft);
+    border:1px solid rgba(91,72,238,.22);border-radius:999px;padding:8px 18px;margin-bottom:30px;
+  }
+  .pill .d{width:6px;height:6px;border-radius:50%;background:var(--green);animation:pulse 1.8s infinite}
+  @keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+  h1{font-weight:900;font-size:clamp(2.4rem,5vw,4rem);line-height:1.4;letter-spacing:.01em}
+  h1 em{font-style:normal;color:var(--vio)}
+  .sub{color:var(--ink-2);font-size:1.05rem;max-width:52ch;margin:26px auto 40px;line-height:2.05}
+  .actions{display:flex;gap:14px;justify-content:center}
+  .btn-p{
+    font-weight:700;font-size:.95rem;background:var(--vio);color:#fff;border-radius:12px;
+    padding:16px 34px;box-shadow:0 10px 30px rgba(91,72,238,.3);transition:.25s;
+  }
+  .btn-p:hover{transform:translateY(-2px);box-shadow:0 16px 40px rgba(91,72,238,.4)}
+  .btn-g{
+    font-weight:700;font-size:.95rem;background:#fff;border:1px solid var(--line);
+    border-radius:12px;padding:16px 34px;transition:.25s;
+  }
+  .btn-g:hover{border-color:var(--vio);color:var(--vio)}
+
+  /* ---------- demo window ---------- */
+  .demo-wrap{padding:22px 0 100px;position:relative}
+  .demo{
+    background:var(--card);border:1px solid var(--line);border-radius:18px;
+    box-shadow:0 30px 90px rgba(22,24,29,.13),0 4px 16px rgba(22,24,29,.05);
+    overflow:hidden;max-width:1060px;margin:0 auto;
+  }
+  .demo-bar{
+    display:flex;align-items:center;gap:10px;padding:14px 20px;border-bottom:1px solid var(--line);
+    background:#FCFCFA;
+  }
+  .demo-bar .c{width:11px;height:11px;border-radius:50%;background:var(--line)}
+  .demo-bar .url{
+    font-family:var(--mono);font-size:.72rem;color:var(--ink-2);background:var(--bg);
+    border:1px solid var(--line);border-radius:8px;padding:6px 16px;margin:0 auto;
+  }
+  .demo-bar .url b{color:var(--vio);font-weight:500}
+  .demo-bar .live{font-family:var(--mono);font-size:.64rem;color:var(--green);display:flex;align-items:center;gap:6px}
+  .demo-bar .live::before{content:"";width:6px;height:6px;border-radius:50%;background:var(--green);animation:pulse 1.8s infinite}
+
+  .demo-body{display:grid;grid-template-columns:minmax(0,1fr) 290px}
+
+  /* flow canvas */
+  .canvas{padding:42px 30px;position:relative;background:
+    radial-gradient(rgba(22,24,29,.05) 1px,transparent 1px);background-size:22px 22px;min-width:0}
+  .flow{display:flex;align-items:stretch;justify-content:space-between;gap:0;position:relative}
+  .node{
+    background:#fff;border:1.5px solid var(--line);border-radius:14px;padding:14px;
+    flex:1;min-width:0;position:relative;transition:.3s;
+  }
+  .node .ic{
+    width:30px;height:30px;border-radius:9px;display:grid;place-items:center;margin-bottom:10px;
+  }
+  .node .ic svg{width:16px;height:16px}
+  .node h4{font-size:.78rem;font-weight:700;line-height:1.5;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .node p{font-family:var(--mono);font-size:.58rem;color:var(--ink-2);margin-top:3px;line-height:1.6;white-space:nowrap}
+  .node .st{
+    position:absolute;top:12px;right:12px;width:8px;height:8px;border-radius:50%;background:var(--line);
+  }
+  .node.done{border-color:rgba(12,191,124,.45)}
+  .node.done .st{background:var(--green)}
+  .node.active{border-color:var(--vio);box-shadow:0 8px 28px rgba(91,72,238,.22);transform:translateY(-3px)}
+  .node.active .st{background:var(--vio);animation:pulse 1.2s infinite}
+  .conn{flex:0 0 22px;height:2px;align-self:center;background:var(--line);position:relative;overflow:hidden}
+  .conn.on{background:rgba(12,191,124,.35)}
+  .conn.on::after{
+    content:"";position:absolute;top:0;left:0;width:40%;height:100%;
+    background:linear-gradient(90deg,transparent,var(--green));animation:flow 1.4s linear infinite;
+  }
+  @keyframes flow{from{transform:translateX(-100%)}to{transform:translateX(350%)}}
+
+  .canvas .note{
+    margin-top:40px;font-family:var(--mono);font-size:.66rem;color:var(--ink-2);
+    display:flex;justify-content:space-between;letter-spacing:.04em;
+  }
+  .canvas .note b{color:var(--green);font-weight:500}
+
+  /* side log */
+  .side{border-left:1px solid var(--line);background:#FCFCFA;padding:24px;display:flex;flex-direction:column}
+  .side h5{font-family:var(--mono);font-size:.64rem;letter-spacing:.14em;color:var(--ink-2);margin-bottom:16px}
+  .log{display:flex;flex-direction:column;gap:11px;font-size:.76rem}
+  .log .li{display:flex;gap:9px;align-items:baseline;line-height:1.6}
+  .log .li .tick{color:var(--green);font-family:var(--mono);font-size:.7rem}
+  .log .li .tm{font-family:var(--mono);font-size:.6rem;color:var(--ink-2);margin-left:auto;flex-shrink:0}
+  .log .li.run .tick{color:var(--vio)}
+  .kpis{margin-top:auto;padding-top:18px;border-top:1px solid var(--line);display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  .kpi .v{font-family:var(--lat);font-weight:700;font-size:1.3rem;letter-spacing:-.02em}
+  .kpi .v.g{color:var(--green)}
+  .kpi .k{font-family:var(--mono);font-size:.58rem;color:var(--ink-2);letter-spacing:.08em;margin-top:2px}
+
+  /* proof under demo */
+  .under{
+    display:flex;justify-content:center;gap:44px;margin-top:36px;
+    font-size:.84rem;color:var(--ink-2);flex-wrap:wrap;
+  }
+  .under b{color:var(--ink);font-weight:700}
+  .under span{display:flex;align-items:center;gap:9px}
+  .under span::before{content:"";width:5px;height:5px;border-radius:50%;background:var(--vio)}
+
+  @media(max-width:960px){
+    .demo-body{grid-template-columns:1fr}
+    .side{border-left:none;border-top:1px solid var(--line)}
+    .flow{flex-direction:column;gap:14px}
+    .conn{width:2px;height:24px;flex:none}
+    nav{display:none}
+  }
+</style>
+</head>
+<body>
+<div class="dots"></div>
+
+<header class="z">
+  <div class="frame nav">
+    <a href="#" class="logo"><span class="mk"></span>Hi-Fi</a>
+    <nav>
+      <ul>
+        <li><a href="#">サービス</a></li>
+        <li><a href="#">導入事例</a></li>
+        <li><a href="#">技術とAI</a></li>
+        <li><a href="#">会社概要</a></li>
+      </ul>
+    </nav>
+    <a href="#" class="cta">相談する</a>
+  </div>
+</header>
+
+<section class="hero frame z">
+  <div class="pill"><span class="d"></span>LIVE — このデモは実際の導入システムを再現しています</div>
+  <h1>私たちの提案書は、<br><em>動きます</em>。</h1>
+  <p class="sub">株式会社Hi-Fiは、AI業務自動化ツールの開発会社です。言葉で説明する前に、まず実物をご覧ください。あなたの会社の毎朝の6時間が、こうして2分になります。</p>
+  <div class="actions">
+    <a href="#" class="btn-p">自社の業務で試算する →</a>
+    <a href="#" class="btn-g">導入事例を見る</a>
+  </div>
+</section>
+
+<section class="demo-wrap frame z">
+  <div class="demo">
+    <div class="demo-bar">
+      <span class="c"></span><span class="c"></span><span class="c"></span>
+      <span class="url">app.hi-fi.co.jp/<b>workflows/daily-ops</b></span>
+      <span class="live">RUNNING</span>
+    </div>
+    <div class="demo-body">
+      <div class="canvas">
+        <div class="flow">
+          <div class="node done">
+            <span class="st"></span>
+            <div class="ic" style="background:rgba(12,191,124,.12)"><svg viewBox="0 0 24 24" fill="none" stroke="#0CBF7C" stroke-width="2"><path d="M4 4h16v16H4z" rx="2"/><path d="M4 9h16M9 4v16"/></svg></div>
+            <h4>受注データ取得</h4>
+            <p>142 records</p>
+          </div>
+          <div class="conn on"></div>
+          <div class="node done">
+            <span class="st"></span>
+            <div class="ic" style="background:rgba(12,191,124,.12)"><svg viewBox="0 0 24 24" fill="none" stroke="#0CBF7C" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg></div>
+            <h4>AI分類・検証</h4>
+            <p>accuracy 99.2%</p>
+          </div>
+          <div class="conn on"></div>
+          <div class="node active">
+            <span class="st"></span>
+            <div class="ic" style="background:var(--vio-soft)"><svg viewBox="0 0 24 24" fill="none" stroke="#5B48EE" stroke-width="2"><path d="M6 3h9l5 5v13H6z"/><path d="M14 3v6h6"/></svg></div>
+            <h4>請求書を自動生成</h4>
+            <p>138 / 142 done</p>
+          </div>
+          <div class="conn"></div>
+          <div class="node">
+            <span class="st"></span>
+            <div class="ic" style="background:rgba(245,166,35,.13)"><svg viewBox="0 0 24 24" fill="none" stroke="#F5A623" stroke-width="2"><path d="M12 3l9 16H3z"/><path d="M12 10v4M12 17.5v.5"/></svg></div>
+            <h4>例外を人へ通知</h4>
+            <p>4 cases → 担当者</p>
+          </div>
+          <div class="conn"></div>
+          <div class="node">
+            <span class="st"></span>
+            <div class="ic" style="background:rgba(22,24,29,.07)"><svg viewBox="0 0 24 24" fill="none" stroke="#16181D" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg></div>
+            <h4>最終承認</h4>
+            <p>human check</p>
+          </div>
+        </div>
+        <div class="note">
+          <span>WORKFLOW: 毎朝 09:00 自動実行</span>
+          <span>所要 <b>2m 14s</b>（従来 6.5h）</span>
+        </div>
+      </div>
+      <div class="side">
+        <h5>EXECUTION LOG</h5>
+        <div class="log">
+          <div class="li"><span class="tick">✓</span>基幹システムに接続<span class="tm">09:00:02</span></div>
+          <div class="li"><span class="tick">✓</span>受注データ 142件 取得<span class="tm">09:00:11</span></div>
+          <div class="li"><span class="tick">✓</span>AI分類 完了（99.2%）<span class="tm">09:00:58</span></div>
+          <div class="li run"><span class="tick">●</span>請求書を生成中…<span class="tm">09:01:22</span></div>
+        </div>
+        <div class="kpis">
+          <div class="kpi"><div class="v g">-70%</div><div class="k">運用経費</div></div>
+          <div class="kpi"><div class="v">6.4h</div><div class="k">1日の削減時間</div></div>
+          <div class="kpi"><div class="v">99.9%</div><div class="k">稼働率</div></div>
+          <div class="kpi"><div class="v">0件</div><div class="k">請求ミス</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="under">
+    <span>YouTube <b>銀の盾</b> 受賞（登録者10万人）</span>
+    <span>月間 <b>3,000万再生</b> を自動化運用で達成</span>
+    <span>AIツール導入で経費 <b>7割削減</b></span>
+  </div>
+</section>
+
+</body>
+</html>

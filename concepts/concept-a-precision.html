@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>株式会社Hi-Fi｜AIを、現場で動く仕組みに。</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:ital,wght@0,400;0,500;1,400&family=Space+Grotesk:wght@400;500;700&family=Zen+Kaku+Gothic+New:wght@400;500;700;900&display=swap" rel="stylesheet" />
+<style>
+  :root{
+    --bg:#0A0D12;
+    --bg-2:#0E1219;
+    --panel:#10151E;
+    --line:#1E2632;
+    --line-hi:#2C3A48;
+    --ink:#E8EDF2;
+    --ink-dim:#8A96A5;
+    --ink-faint:#4A5560;
+    --acc:#63F2C5;
+    --acc-dim:rgba(99,242,197,.14);
+    --mono:"IBM Plex Mono",monospace;
+    --disp:"Space Grotesk",sans-serif;
+    --jp:"Zen Kaku Gothic New",sans-serif;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{
+    background:var(--bg);
+    color:var(--ink);
+    font-family:var(--jp);
+    line-height:1.9;
+    -webkit-font-smoothing:antialiased;
+    overflow-x:hidden;
+  }
+  a{color:inherit;text-decoration:none}
+
+  /* faint blueprint grid */
+  .grid-bg{
+    position:fixed;inset:0;z-index:0;pointer-events:none;
+    background-image:
+      linear-gradient(rgba(255,255,255,.028) 1px,transparent 1px),
+      linear-gradient(90deg,rgba(255,255,255,.028) 1px,transparent 1px);
+    background-size:72px 72px;
+    mask-image:radial-gradient(120% 90% at 50% 0%,#000 40%,transparent 100%);
+  }
+  .glow{
+    position:fixed;top:-30%;right:-15%;width:900px;height:900px;z-index:0;pointer-events:none;
+    background:radial-gradient(circle,rgba(99,242,197,.07),transparent 62%);
+  }
+
+  .frame{position:relative;z-index:1;max-width:1320px;margin:0 auto;padding:0 40px}
+
+  /* ---------- header ---------- */
+  header{border-bottom:1px solid var(--line)}
+  .nav{display:flex;align-items:center;height:72px;gap:48px}
+  .logo{font-family:var(--disp);font-weight:700;font-size:1.3rem;letter-spacing:.01em;display:flex;align-items:baseline;gap:10px}
+  .logo .sq{width:10px;height:10px;background:var(--acc);display:inline-block;transform:translateY(-1px)}
+  .logo small{font-family:var(--mono);font-weight:400;font-size:.62rem;color:var(--ink-faint);letter-spacing:.14em}
+  nav{margin-left:auto}
+  nav ul{display:flex;gap:36px;list-style:none;font-size:.86rem;font-weight:500}
+  nav a{color:var(--ink-dim);transition:.2s}
+  nav a:hover{color:var(--acc)}
+  .nav-contact{
+    font-family:var(--mono);font-size:.78rem;letter-spacing:.06em;
+    border:1px solid var(--line);padding:10px 22px;color:var(--ink);
+    transition:.25s;display:inline-flex;align-items:center;gap:10px;
+  }
+  .nav-contact .dot{width:6px;height:6px;border-radius:50%;background:var(--acc);animation:blink 2.2s infinite}
+  @keyframes blink{0%,100%{opacity:1}50%{opacity:.25}}
+  .nav-contact:hover{border-color:var(--acc);background:var(--acc-dim)}
+
+  /* ---------- hero ---------- */
+  .hero{padding:96px 0 88px;display:grid;grid-template-columns:1.05fr .95fr;gap:72px;align-items:center}
+  .meta-line{
+    font-family:var(--mono);font-size:.72rem;letter-spacing:.18em;color:var(--acc);
+    display:flex;align-items:center;gap:14px;margin-bottom:34px;
+  }
+  .meta-line::before{content:"";width:36px;height:1px;background:var(--acc)}
+  .meta-line span{color:var(--ink-faint)}
+  h1{
+    font-weight:900;font-size:clamp(2.4rem,4.4vw,3.9rem);line-height:1.38;letter-spacing:.015em;
+  }
+  h1 em{font-style:normal;color:var(--acc)}
+  .sub{
+    margin:30px 0 44px;color:var(--ink-dim);font-size:1.02rem;max-width:44ch;line-height:2.05;
+  }
+  .actions{display:flex;gap:18px;align-items:center}
+  .btn-solid{
+    font-family:var(--jp);font-weight:700;font-size:.94rem;
+    background:var(--acc);color:#07110D;padding:17px 36px;
+    display:inline-flex;align-items:center;gap:12px;transition:.25s;
+  }
+  .btn-solid:hover{transform:translate(-2px,-2px);box-shadow:6px 6px 0 rgba(99,242,197,.25)}
+  .btn-line{
+    font-family:var(--mono);font-size:.8rem;letter-spacing:.08em;color:var(--ink-dim);
+    border-bottom:1px solid var(--line-hi);padding-bottom:4px;transition:.2s;
+  }
+  .btn-line:hover{color:var(--acc);border-color:var(--acc)}
+
+  /* proof row */
+  .proof{display:flex;gap:0;margin-top:58px;border:1px solid var(--line);background:rgba(255,255,255,.015)}
+  .proof>div{flex:1;padding:22px 26px;border-right:1px solid var(--line)}
+  .proof>div:last-child{border-right:none}
+  .proof .n{font-family:var(--disp);font-weight:700;font-size:1.7rem;letter-spacing:-.01em}
+  .proof .n i{font-style:normal;font-size:.85rem;color:var(--acc);margin-left:2px}
+  .proof .l{font-family:var(--mono);font-size:.62rem;letter-spacing:.1em;color:var(--ink-faint);margin-top:6px;line-height:1.6}
+
+  /* ---------- terminal panel ---------- */
+  .term{
+    border:1px solid var(--line);background:var(--panel);
+    box-shadow:0 40px 100px rgba(0,0,0,.55);position:relative;
+  }
+  .term::before{
+    content:"";position:absolute;top:-1px;left:-1px;right:-1px;height:2px;
+    background:linear-gradient(90deg,var(--acc),transparent 65%);
+  }
+  .term-head{
+    display:flex;align-items:center;gap:12px;padding:15px 22px;border-bottom:1px solid var(--line);
+    font-family:var(--mono);font-size:.7rem;letter-spacing:.1em;color:var(--ink-faint);
+  }
+  .term-head .lights{display:flex;gap:7px}
+  .term-head .lights span{width:9px;height:9px;border-radius:50%;background:var(--line-hi)}
+  .term-head .lights span:first-child{background:var(--acc);opacity:.85}
+  .term-head .stat{margin-left:auto;color:var(--acc)}
+  .term-body{padding:26px 24px;font-family:var(--mono);font-size:.8rem;line-height:2.15}
+  .row{display:flex;gap:14px;align-items:baseline}
+  .row .t{color:var(--ink-faint);font-size:.68rem;width:52px;flex-shrink:0}
+  .row .ok{color:var(--acc)}
+  .row .dim{color:var(--ink-dim)}
+  .row .wt{color:var(--ink)}
+  .cursor{display:inline-block;width:8px;height:15px;background:var(--acc);vertical-align:-2px;animation:blink 1s steps(1) infinite}
+
+  .term-metrics{
+    display:grid;grid-template-columns:1fr 1fr 1fr;border-top:1px solid var(--line);
+  }
+  .term-metrics>div{padding:18px 22px;border-right:1px solid var(--line)}
+  .term-metrics>div:last-child{border-right:none}
+  .term-metrics .k{font-family:var(--mono);font-size:.6rem;letter-spacing:.12em;color:var(--ink-faint)}
+  .term-metrics .v{font-family:var(--disp);font-weight:700;font-size:1.25rem;margin-top:4px}
+  .term-metrics .v.g{color:var(--acc)}
+
+  .caption{
+    font-family:var(--mono);font-size:.64rem;letter-spacing:.1em;color:var(--ink-faint);
+    margin-top:16px;display:flex;justify-content:space-between;
+  }
+
+  /* ---------- ticker ---------- */
+  .ticker{border-top:1px solid var(--line);border-bottom:1px solid var(--line);overflow:hidden;padding:16px 0;background:var(--bg-2)}
+  .ticker-in{display:flex;gap:64px;white-space:nowrap;font-family:var(--mono);font-size:.74rem;letter-spacing:.14em;color:var(--ink-faint);animation:mv 30s linear infinite}
+  .ticker-in b{color:var(--ink-dim);font-weight:500}
+  .ticker-in i{font-style:normal;color:var(--acc)}
+  @keyframes mv{to{transform:translateX(-50%)}}
+
+  @media(max-width:1000px){
+    .hero{grid-template-columns:1fr;gap:56px;padding:64px 0}
+    .frame{padding:0 24px}
+    nav{display:none}
+    .proof{flex-direction:column}
+    .proof>div{border-right:none;border-bottom:1px solid var(--line)}
+  }
+</style>
+</head>
+<body>
+<div class="grid-bg"></div>
+<div class="glow"></div>
+
+<header>
+  <div class="frame nav">
+    <a href="#" class="logo"><span class="sq"></span>Hi-Fi<small>HIGH FIDELITY INC.</small></a>
+    <nav>
+      <ul>
+        <li><a href="#">サービス</a></li>
+        <li><a href="#">導入事例</a></li>
+        <li><a href="#">技術とAI</a></li>
+        <li><a href="#">会社概要</a></li>
+      </ul>
+    </nav>
+    <a href="#" class="nav-contact" style="margin-left:40px"><span class="dot"></span>CONTACT</a>
+  </div>
+</header>
+
+<section class="frame hero">
+  <div>
+    <div class="meta-line">AI SYSTEMS ENGINEERING<span>／ YOKOHAMA, JP</span></div>
+    <h1>AIを、現場で<br><em>動き続ける仕組み</em>に<br>実装する。</h1>
+    <p class="sub">株式会社Hi-Fiは、業務自動化ツールの開発とワークフロー設計を行うエンジニアリング会社です。実証済みの自動化基盤で、属人化した業務を「止まらないシステム」へ置き換えます。</p>
+    <div class="actions">
+      <a href="#" class="btn-solid">導入の相談をする →</a>
+      <a href="#" class="btn-line">TECHNICAL CASES ↗</a>
+    </div>
+    <div class="proof">
+      <div><div class="n">-70<i>%</i></div><div class="l">OPERATING COST<br>AI管理ツール導入後</div></div>
+      <div><div class="n">3,000<i>万+</i></div><div class="l">MONTHLY VIEWS<br>自動化運用チャンネル</div></div>
+      <div><div class="n">100<i>K</i></div><div class="l">SUBSCRIBERS<br>YouTube 銀の盾 受賞</div></div>
+    </div>
+  </div>
+
+  <div>
+    <div class="term">
+      <div class="term-head">
+        <span class="lights"><span></span><span></span><span></span></span>
+        hifi://automation-pipeline
+        <span class="stat">● RUNNING</span>
+      </div>
+      <div class="term-body">
+        <div class="row"><span class="t">09:00</span><span class="dim">$ hifi run daily-ops</span></div>
+        <div class="row"><span class="t">09:00</span><span class="ok">✓</span><span class="wt">受注データ 142件 を取得</span></div>
+        <div class="row"><span class="t">09:01</span><span class="ok">✓</span><span class="wt">AI分類 — 精度 99.2%</span></div>
+        <div class="row"><span class="t">09:01</span><span class="ok">✓</span><span class="wt">請求書 138件 を自動生成</span></div>
+        <div class="row"><span class="t">09:02</span><span class="ok">✓</span><span class="wt">例外 4件 → 担当者へ通知</span></div>
+        <div class="row"><span class="t">09:02</span><span class="dim">完了 · 所要 2m 14s（従来 6.5h）</span></div>
+        <div class="row"><span class="t"></span><span class="cursor"></span></div>
+      </div>
+      <div class="term-metrics">
+        <div><div class="k">UPTIME</div><div class="v g">99.9%</div></div>
+        <div><div class="k">TIME SAVED</div><div class="v">6.4h/日</div></div>
+        <div><div class="k">HUMAN CHECK</div><div class="v">最終承認</div></div>
+      </div>
+    </div>
+    <div class="caption"><span>FIG.01 — 実際に稼働中の自動化パイプライン（一例）</span><span>EST. 2017</span></div>
+  </div>
+</section>
+
+<div class="ticker">
+  <div class="ticker-in">
+    <span><b>業務効率化ツール開発</b> <i>/</i> ワークフロー自動化 <i>/</i> <b>AI導入設計</b> <i>/</i> 非属人化オペレーション <i>/</i> <b>データ分析基盤</b> <i>/</i> コンテンツ制作自動化 <i>/</i></span>
+    <span><b>業務効率化ツール開発</b> <i>/</i> ワークフロー自動化 <i>/</i> <b>AI導入設計</b> <i>/</i> 非属人化オペレーション <i>/</i> <b>データ分析基盤</b> <i>/</i> コンテンツ制作自動化 <i>/</i></span>
+  </div>
+</div>
+
+</body>
+</html>

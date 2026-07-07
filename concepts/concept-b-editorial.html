@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>株式会社Hi-Fi｜退屈な仕事は、技術が終わらせる。</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho+B1:wght@600;700;800&family=Inter:wght@400;500;600&family=Zen+Kaku+Gothic+New:wght@400;500;700&display=swap" rel="stylesheet" />
+<style>
+  :root{
+    --paper:#F4F1EA;
+    --ink:#141310;
+    --ink-2:#57534A;
+    --line:#D9D4C8;
+    --blue:#1D34E0;
+    --serif:"Shippori Mincho B1",serif;
+    --sans:"Zen Kaku Gothic New",sans-serif;
+    --lat:"Inter",sans-serif;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{
+    background:var(--paper);color:var(--ink);font-family:var(--sans);
+    line-height:1.9;-webkit-font-smoothing:antialiased;overflow-x:hidden;
+  }
+  a{color:inherit;text-decoration:none}
+  .frame{max-width:1360px;margin:0 auto;padding:0 44px}
+
+  /* ---------- top meta bar ---------- */
+  .meta-bar{
+    display:flex;justify-content:space-between;align-items:center;
+    padding:14px 0;border-bottom:1px solid var(--ink);
+    font-family:var(--lat);font-size:.68rem;letter-spacing:.16em;color:var(--ink-2);
+    text-transform:uppercase;
+  }
+  .meta-bar b{color:var(--ink);font-weight:600}
+
+  /* ---------- header ---------- */
+  .nav{display:flex;align-items:center;justify-content:space-between;padding:26px 0}
+  .logo{font-family:var(--lat);font-weight:600;font-size:1.5rem;letter-spacing:-.03em}
+  .logo sup{font-size:.6rem;vertical-align:super;color:var(--blue)}
+  nav ul{display:flex;gap:40px;list-style:none;font-size:.88rem;font-weight:500}
+  nav a{position:relative;transition:.2s}
+  nav a:hover{color:var(--blue)}
+  .nav-cta{
+    font-family:var(--lat);font-size:.72rem;letter-spacing:.14em;font-weight:600;
+    border:1px solid var(--ink);border-radius:999px;padding:11px 26px;transition:.25s;
+  }
+  .nav-cta:hover{background:var(--ink);color:var(--paper)}
+
+  /* ---------- hero ---------- */
+  .hero{padding:74px 0 0;position:relative}
+  .hero-index{
+    position:absolute;top:84px;right:44px;text-align:right;
+    font-family:var(--lat);font-size:.7rem;letter-spacing:.1em;color:var(--ink-2);line-height:2.4;
+  }
+  .hero-index b{color:var(--ink);font-weight:600}
+  .hero-index .no{color:var(--blue);margin-right:12px}
+  h1{
+    font-family:var(--serif);font-weight:800;
+    font-size:clamp(3.2rem,7.6vw,7rem);line-height:1.28;letter-spacing:.01em;
+  }
+  h1 .l2{display:block;padding-left:1.5em}
+  h1 em{font-style:normal;color:var(--blue)}
+  .hero-sub{
+    display:grid;grid-template-columns:1fr 1fr;gap:44px;align-items:end;
+    margin-top:64px;padding-bottom:56px;border-bottom:1px solid var(--ink);
+  }
+  .hero-sub p{color:var(--ink-2);font-size:1rem;max-width:52ch;line-height:2.1}
+  .hero-sub p b{color:var(--ink);font-weight:700}
+  .hero-actions{display:flex;gap:16px;justify-content:flex-end;align-items:center}
+  .btn-fill{
+    font-weight:700;font-size:.95rem;background:var(--blue);color:#fff;
+    border-radius:999px;padding:18px 40px;display:inline-flex;gap:12px;align-items:center;
+    transition:.3s;
+  }
+  .btn-fill:hover{background:var(--ink)}
+  .btn-under{
+    font-family:var(--lat);font-size:.78rem;letter-spacing:.1em;font-weight:600;
+    border-bottom:1px solid var(--ink);padding-bottom:5px;transition:.2s;
+  }
+  .btn-under:hover{color:var(--blue);border-color:var(--blue)}
+
+  /* ---------- ledger stats ---------- */
+  .ledger{display:grid;grid-template-columns:repeat(3,1fr)}
+  .ledger>div{
+    padding:44px 40px 48px;border-right:1px solid var(--ink);position:relative;
+  }
+  .ledger>div:first-child{padding-left:0}
+  .ledger>div:last-child{border-right:none}
+  .ledger .idx{font-family:var(--lat);font-size:.66rem;letter-spacing:.16em;color:var(--blue);font-weight:600}
+  .ledger .num{
+    font-family:var(--serif);font-weight:800;font-size:clamp(2.6rem,4.6vw,4.2rem);
+    line-height:1.15;margin-top:14px;letter-spacing:-.01em;
+  }
+  .ledger .num small{font-size:.4em;font-weight:700;margin-left:4px}
+  .ledger .cap{font-size:.86rem;color:var(--ink-2);margin-top:10px;line-height:1.8}
+  .ledger .cap b{color:var(--ink)}
+
+  /* ---------- bottom strip ---------- */
+  .foot-strip{
+    border-top:1px solid var(--ink);margin-top:0;
+    display:flex;justify-content:space-between;align-items:center;padding:18px 0 26px;
+    font-family:var(--lat);font-size:.66rem;letter-spacing:.14em;color:var(--ink-2);text-transform:uppercase;
+  }
+  .foot-strip .mark{display:inline-flex;align-items:center;gap:8px}
+  .foot-strip .mark::before{content:"";width:8px;height:8px;border-radius:50%;background:var(--blue)}
+
+  @media(max-width:1000px){
+    .frame{padding:0 24px}
+    .hero-index{display:none}
+    .hero-sub{grid-template-columns:1fr;gap:32px}
+    .hero-actions{justify-content:flex-start}
+    .ledger{grid-template-columns:1fr}
+    .ledger>div{border-right:none;border-bottom:1px solid var(--ink);padding-left:0}
+    nav{display:none}
+  }
+</style>
+</head>
+<body>
+
+<div class="frame">
+  <div class="meta-bar">
+    <span><b>Hi-Fi</b> — High Fidelity Inc.</span>
+    <span>AI Systems &amp; Workflow Engineering</span>
+    <span>Yokohama — Est. <b>2017</b></span>
+  </div>
+
+  <div class="nav">
+    <a href="#" class="logo">Hi-Fi<sup>®</sup></a>
+    <nav>
+      <ul>
+        <li><a href="#">サービス</a></li>
+        <li><a href="#">導入事例</a></li>
+        <li><a href="#">技術とAI</a></li>
+        <li><a href="#">会社概要</a></li>
+      </ul>
+    </nav>
+    <a href="#" class="nav-cta">CONTACT ↗</a>
+  </div>
+
+  <section class="hero">
+    <div class="hero-index">
+      <span class="no">01</span><b>業務効率化ツール開発</b><br>
+      <span class="no">02</span>ワークフロー自動化<br>
+      <span class="no">03</span>AI導入設計・運用<br>
+      <span class="no">04</span>コンテンツ制作の仕組み化
+    </div>
+    <h1>退屈な仕事は、<span class="l2">技術が<em>終わらせる</em>。</span></h1>
+
+    <div class="hero-sub">
+      <p>株式会社Hi-Fiは、AIと自動化の実装を専門とするエンジニアリング会社です。<b>経費7割削減、月間3,000万再生</b>——自社事業で実証した仕組みを、そのままお客様の業務に移植します。誇張はしません。動くものだけを納品します。</p>
+      <div class="hero-actions">
+        <a href="#" class="btn-fill">導入の相談をする →</a>
+        <a href="#" class="btn-under">VIEW CASES</a>
+      </div>
+    </div>
+
+    <div class="ledger">
+      <div>
+        <div class="idx">PROOF — 01</div>
+        <div class="num">−70<small>%</small></div>
+        <div class="cap"><b>運用経費の削減率。</b>手作業の管理業務をAIツールへ置換した実測値。</div>
+      </div>
+      <div>
+        <div class="idx">PROOF — 02</div>
+        <div class="num">3,000<small>万</small></div>
+        <div class="cap"><b>月間再生数。</b>属人性を排した自動化運用チャンネルの実績。</div>
+      </div>
+      <div>
+        <div class="idx">PROOF — 03</div>
+        <div class="num">銀の盾</div>
+        <div class="cap"><b>YouTube公式受賞。</b>登録者10万人。仕組みだけで到達した証明。</div>
+      </div>
+    </div>
+
+    <div class="foot-strip">
+      <span class="mark">Currently accepting new projects</span>
+      <span>Scroll to explore ↓</span>
+    </div>
+  </section>
+</div>
+
+</body>
+</html>

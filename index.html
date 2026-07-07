@@ -3,452 +3,469 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>株式会社Hi-Fi｜AIと仕組みで、あなたの“面倒”にやさしく寄り添う。</title>
-<meta name="description" content="株式会社Hi-Fiは、業務効率化ツールの開発・ワークフロー簡易化を主軸に、SNS集客・動画編集・非属人制YouTube運営までAIを活用してワンストップで支援します。YouTube銀の盾保有。" />
+<title>株式会社Hi-Fi｜面倒な仕事が、朝には終わっている。</title>
+<meta name="description" content="株式会社Hi-Fiは、毎日の決まった仕事を「自動で回る仕組み」に変える会社です。業務効率化ツール開発・ワークフロー設計を主軸に、SNS集客・動画制作・YouTube運営まで支援。経費7割削減、YouTube銀の盾の実績。" />
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,500&family=Zen+Kaku+Gothic+New:wght@400;500;700&family=Zen+Maru+Gothic:wght@500;700;900&display=swap" rel="stylesheet" />
+<link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho+B1:wght@600;700;800&family=Inter:wght@400;500;600&family=Zen+Kaku+Gothic+New:wght@400;500;700&display=swap" rel="stylesheet" />
 <style>
   :root{
-    --cream:#FFFAF4;
-    --cream-2:#FCF1E7;
-    --cream-3:#F7E7D9;
-    --coral:#F47C66;
-    --coral-d:#E0613F;
-    --peach:#FFC6A6;
-    --gold:#EBB659;
-    --sage:#6FB0A0;
-    --sage-d:#4E978A;
-    --ink:#4A352E;
-    --ink-soft:#8A7268;
-    --deep:#3C2925;
-    --line:#F0E0D1;
-    --shadow-sm:0 3px 14px rgba(74,53,46,.06);
-    --shadow:0 18px 50px rgba(74,53,46,.12);
-    --shadow-lg:0 34px 80px rgba(74,53,46,.18);
-    --r:24px;
-    --maxw:1180px;
-    --jp:"Zen Kaku Gothic New",sans-serif;
-    --jpr:"Zen Maru Gothic",sans-serif; /* rounded, warm */
-    --disp:"Fraunces",serif;
+    --paper:#F7F5EF;
+    --paper-2:#FFFFFF;
+    --paper-3:#FBFAF6;
+    --ink:#211E18;
+    --ink-2:#6B655A;
+    --line:#E3DFD4;
+    --line-d:#211E18;
+    --teal:#0E6B5C;
+    --teal-deep:#123B33;
+    --teal-soft:rgba(14,107,92,.08);
+    --green:#1FA37C;
+    --amber:#D99A2B;
+    --serif:"Shippori Mincho B1",serif;
+    --sans:"Zen Kaku Gothic New",sans-serif;
+    --lat:"Inter",sans-serif;
   }
   *{margin:0;padding:0;box-sizing:border-box}
   html{scroll-behavior:smooth}
   body{
-    font-family:var(--jp);
-    color:var(--ink);
-    background:var(--cream);
-    line-height:1.9;
-    -webkit-font-smoothing:antialiased;
-    overflow-x:hidden;
+    background:var(--paper);color:var(--ink);font-family:var(--sans);
+    line-height:1.9;-webkit-font-smoothing:antialiased;overflow-x:hidden;
   }
-  .wrap{max-width:var(--maxw);margin:0 auto;padding:0 28px}
   a{color:inherit;text-decoration:none}
+  .frame{max-width:1280px;margin:0 auto;padding:0 40px}
   section{position:relative}
 
-  /* soft decorative blobs */
-  .blob{position:absolute;border-radius:46% 54% 62% 38% / 48% 42% 58% 52%;filter:blur(8px);z-index:-1;opacity:.5}
-
   .kicker{
-    font-family:var(--disp);font-style:italic;font-size:1rem;letter-spacing:.02em;
-    color:var(--coral-d);font-weight:500;display:inline-flex;align-items:center;gap:.55em;
+    font-family:var(--lat);font-size:.68rem;letter-spacing:.2em;color:var(--teal);font-weight:600;
+    display:flex;align-items:center;gap:14px;text-transform:uppercase;
   }
-  .kicker::before{content:"";width:24px;height:2px;border-radius:2px;background:var(--coral);opacity:.7}
-
-  h2.title{font-family:var(--jpr);font-weight:900;font-size:clamp(1.7rem,3.4vw,2.65rem);line-height:1.4;letter-spacing:.01em;color:var(--ink)}
-  .lead{color:var(--ink-soft);font-size:1.02rem;max-width:60ch;margin-top:16px;line-height:1.95}
-
-  .btn{
-    display:inline-flex;align-items:center;gap:.55em;font-family:var(--jpr);font-weight:700;
-    font-size:.95rem;padding:15px 30px;border-radius:999px;transition:.35s cubic-bezier(.2,.8,.3,1);
-    border:2px solid transparent;cursor:pointer;white-space:nowrap;
+  .kicker::before{content:"";width:34px;height:1px;background:var(--teal)}
+  h2.title{
+    font-family:var(--serif);font-weight:800;font-size:clamp(1.9rem,3.2vw,2.8rem);
+    line-height:1.55;letter-spacing:.015em;margin-top:22px;
   }
-  .btn-primary{background:linear-gradient(120deg,var(--coral),#ff9472);color:#fff;box-shadow:0 12px 28px rgba(244,124,102,.34)}
-  .btn-primary:hover{transform:translateY(-3px);box-shadow:0 18px 40px rgba(244,124,102,.46)}
-  .btn-ghost{background:#fff;border-color:var(--cream-3);color:var(--ink)}
-  .btn-ghost:hover{border-color:var(--coral);color:var(--coral-d);transform:translateY(-3px)}
-  .btn .arr{transition:transform .3s}
-  .btn:hover .arr{transform:translateX(4px)}
+  h2.title em{font-style:normal;color:var(--teal)}
+  .lead{color:var(--ink-2);font-size:.98rem;max-width:58ch;margin-top:18px;line-height:2.1}
+  .lead b{color:var(--ink);font-weight:700}
 
-  /* ---------- header ---------- */
-  header{position:fixed;top:0;left:0;right:0;z-index:100;transition:.35s}
-  .nav{display:flex;align-items:center;justify-content:space-between;height:76px}
-  header.scrolled{background:rgba(255,250,244,.85);backdrop-filter:blur(14px);box-shadow:0 4px 24px rgba(74,53,46,.06)}
-  .logo{display:flex;align-items:center;gap:11px;font-family:var(--disp);font-weight:600;font-size:1.5rem;letter-spacing:-.01em;color:var(--ink)}
-  .logo .mark{position:relative;width:34px;height:34px;flex-shrink:0}
-  .logo .mark .c1{position:absolute;width:24px;height:24px;border-radius:50%;background:linear-gradient(135deg,var(--coral),var(--peach));top:0;left:0}
-  .logo .mark .c2{position:absolute;width:16px;height:16px;border-radius:50%;background:linear-gradient(135deg,var(--gold),var(--coral));bottom:0;right:0;mix-blend-mode:multiply;opacity:.92}
-  .logo .mark .dot{position:absolute;width:6px;height:6px;border-radius:50%;background:#fff;top:8px;left:8px}
-  .logo small{font-family:var(--jp);font-size:.58rem;letter-spacing:.18em;color:var(--ink-soft);font-weight:500;display:block;margin-top:-6px}
-  nav ul{display:flex;align-items:center;gap:30px;list-style:none;font-family:var(--jpr);font-weight:500;font-size:.92rem}
-  nav ul a{position:relative;color:var(--ink);transition:.2s}
-  nav ul a::after{content:"";position:absolute;left:0;bottom:-6px;width:0;height:2px;border-radius:2px;background:var(--coral);transition:.3s}
-  nav ul a:hover{color:var(--coral-d)}
-  nav ul a:hover::after{width:100%}
-  .nav-cta{display:flex;align-items:center;gap:16px}
-  .menu-btn{display:none;background:none;border:none;cursor:pointer;flex-direction:column;gap:5px}
-  .menu-btn span{width:24px;height:2px;background:var(--ink);border-radius:2px}
+  .btn-fill{
+    font-weight:700;font-size:.95rem;background:var(--teal);color:#fff;border-radius:999px;
+    padding:17px 38px;display:inline-flex;gap:12px;align-items:center;transition:.3s;
+    box-shadow:0 12px 30px rgba(14,107,92,.22);cursor:pointer;border:none;font-family:var(--sans);
+  }
+  .btn-fill:hover{background:var(--ink);transform:translateY(-2px)}
+  .btn-under{
+    font-family:var(--lat);font-size:.76rem;letter-spacing:.12em;font-weight:600;
+    border-bottom:1px solid var(--ink);padding-bottom:5px;transition:.2s;
+  }
+  .btn-under:hover{color:var(--teal);border-color:var(--teal)}
 
-  /* ---------- hero ---------- */
-  .hero{padding:168px 0 96px;position:relative;overflow:hidden}
-  .hero::before{content:"";position:absolute;inset:0;background:
-    radial-gradient(58% 50% at 80% 12%,rgba(255,198,166,.45),transparent 68%),
-    radial-gradient(50% 46% at 8% 6%,rgba(244,124,102,.16),transparent 70%),
-    radial-gradient(40% 40% at 95% 88%,rgba(235,182,89,.16),transparent 70%);z-index:-2}
-  .hero .blob-1{width:340px;height:340px;background:linear-gradient(135deg,var(--peach),var(--coral));top:-60px;right:-40px;opacity:.18}
-  .hero-grid{display:grid;grid-template-columns:1.06fr .94fr;gap:54px;align-items:center}
-  .hero h1{font-family:var(--jpr);font-weight:900;font-size:clamp(2.05rem,4.7vw,3.5rem);line-height:1.42;letter-spacing:.01em;color:var(--ink)}
-  .hero h1 .hl{position:relative;color:var(--coral-d);white-space:nowrap}
-  .hero h1 .hl::after{content:"";position:absolute;left:-2%;right:-2%;bottom:.06em;height:.34em;background:linear-gradient(90deg,rgba(255,198,166,.7),rgba(244,124,102,.32));z-index:-1;border-radius:6px}
-  .hero p.sub{margin:28px 0 36px;color:var(--ink-soft);font-size:1.08rem;max-width:46ch;line-height:2}
-  .hero-actions{display:flex;gap:14px;flex-wrap:wrap}
-  .hero-meta{margin-top:32px;font-family:var(--jpr);font-size:.84rem;color:var(--ink-soft);display:flex;gap:10px;flex-wrap:wrap;align-items:center}
-  .hero-meta .pill{background:#fff;border:1px solid var(--line);border-radius:999px;padding:7px 15px;box-shadow:var(--shadow-sm)}
-  .hero-meta .pill b{color:var(--coral-d);font-weight:700}
-
-  /* hero visual: warm friendly card */
-  .hero-visual{position:relative}
-  .glow-card{background:#fff;border:1px solid var(--line);border-radius:30px;box-shadow:var(--shadow-lg);padding:28px;position:relative;overflow:hidden}
-  .glow-card::before{content:"";position:absolute;top:-50px;right:-50px;width:160px;height:160px;border-radius:50%;background:radial-gradient(circle,rgba(255,198,166,.55),transparent 70%)}
-  .gc-head{display:flex;align-items:center;gap:12px;margin-bottom:22px;position:relative}
-  .gc-ava{width:44px;height:44px;border-radius:50%;background:linear-gradient(135deg,var(--coral),var(--gold));display:grid;place-items:center;font-size:1.3rem;box-shadow:0 6px 16px rgba(244,124,102,.3)}
-  .gc-head .t{font-family:var(--jpr);font-weight:700;font-size:.96rem;color:var(--ink);line-height:1.5}
-  .gc-head .t span{display:block;font-family:var(--jp);font-weight:500;font-size:.72rem;color:var(--ink-soft)}
-  .gc-rows{display:flex;flex-direction:column;gap:13px;position:relative}
-  .gc-row{display:flex;align-items:center;gap:13px;font-family:var(--jpr);font-size:.9rem;font-weight:700;color:var(--ink);background:var(--cream);border:1px solid var(--line);border-radius:16px;padding:14px 16px;transition:.3s}
-  .gc-row:hover{transform:translateX(4px);border-color:var(--peach)}
-  .gc-row .ic{width:34px;height:34px;border-radius:11px;display:grid;place-items:center;flex-shrink:0;font-size:1rem}
-  .gc-row .v{margin-left:auto;font-family:var(--disp);font-weight:700;font-size:1.15rem;color:var(--coral-d)}
-  .gc-row .v small{font-size:.7rem;font-family:var(--jp);color:var(--ink-soft);font-weight:500}
-  .float-tag{position:absolute;background:#fff;border:1px solid var(--line);border-radius:18px;box-shadow:var(--shadow);padding:13px 17px;font-family:var(--jpr);font-weight:700;font-size:.82rem;color:var(--ink);display:flex;align-items:center;gap:10px;line-height:1.4}
-  .float-tag .em{font-size:1.7rem}
-  .ft-1{top:-26px;right:-12px;animation:floaty 4.5s ease-in-out infinite}
-  .ft-2{bottom:-22px;left:-20px;animation:floaty 4.5s ease-in-out infinite 1s}
-  @keyframes floaty{0%,100%{transform:translateY(0) rotate(-1deg)}50%{transform:translateY(-10px) rotate(1deg)}}
-
-  /* ---------- trust strip ---------- */
-  .strip{background:var(--cream-2);overflow:hidden;padding:20px 0;border-block:1px solid var(--line)}
-  .strip-track{display:flex;gap:50px;white-space:nowrap;animation:scroll 28s linear infinite;font-family:var(--jpr);font-weight:700;color:var(--ink);font-size:1rem}
-  .strip-track span{display:inline-flex;align-items:center;gap:50px}
-  .strip-track i{color:var(--coral);font-style:normal;font-size:.8rem}
-  @keyframes scroll{to{transform:translateX(-50%)}}
-
-  .sec{padding:104px 0}
-  .sec-head{margin-bottom:56px}
-  .sec-head.center{text-align:center}
-  .sec-head.center .lead{margin-inline:auto}
-  .sec-head.center .kicker{justify-content:center}
-
-  /* ---------- stats ---------- */
-  .stats{background:linear-gradient(180deg,var(--cream),var(--cream-2))}
-  .stat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:24px}
-  .stat{background:#fff;border:1px solid var(--line);border-radius:var(--r);padding:34px 28px;box-shadow:var(--shadow-sm);position:relative;overflow:hidden;text-align:center}
-  .stat .num{font-family:var(--disp);font-weight:700;font-size:2.7rem;line-height:1;color:var(--coral-d);letter-spacing:-.01em}
-  .stat .num .u{font-size:1.1rem;color:var(--gold);margin-left:2px}
-  .stat .lb{font-family:var(--jpr);font-weight:700;color:var(--ink);font-size:.92rem;margin-top:14px}
-  .stat .sub{font-family:var(--jp);font-weight:400;color:var(--ink-soft);font-size:.76rem;margin-top:4px}
-  .stat.badge-stat{background:linear-gradient(140deg,#fff,var(--cream-2));border-color:var(--peach)}
-  .stat .shield{font-size:2.4rem;line-height:1}
-  .stat .shield-t{font-family:var(--disp);font-weight:700;font-size:1.5rem;color:var(--ink);margin-top:6px}
-
-  /* ---------- strengths ---------- */
-  .str-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:26px}
-  .str{padding:40px 32px;border-radius:var(--r);border:1px solid var(--line);background:#fff;transition:.35s;position:relative;overflow:hidden}
-  .str:hover{transform:translateY(-7px);box-shadow:var(--shadow);border-color:var(--peach)}
-  .str .badge{width:64px;height:64px;border-radius:50% 50% 50% 14px;display:grid;place-items:center;margin-bottom:24px;font-size:1.7rem;box-shadow:var(--shadow-sm)}
-  .str h3{font-family:var(--jpr);font-weight:700;font-size:1.24rem;color:var(--ink);margin-bottom:12px}
-  .str p{color:var(--ink-soft);font-size:.93rem}
-  .str .no{position:absolute;top:26px;right:30px;font-family:var(--disp);font-style:italic;font-size:1.3rem;color:var(--cream-3)}
-
-  /* ---------- services ---------- */
-  .services{background:var(--cream-2)}
-  .svc-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:22px}
-  .svc{background:#fff;border:1px solid var(--line);border-radius:var(--r);padding:32px;transition:.35s;position:relative;overflow:hidden;display:flex;flex-direction:column}
-  .svc.big{grid-column:span 3}
-  .svc.sm{grid-column:span 2}
-  .svc:hover{transform:translateY(-7px);box-shadow:var(--shadow)}
-  .svc .tag{font-family:var(--jpr);font-weight:700;font-size:.68rem;letter-spacing:.06em;padding:5px 12px;border-radius:999px;display:inline-block;margin-bottom:20px;width:fit-content}
-  .tag-main{background:rgba(244,124,102,.14);color:var(--coral-d)}
-  .tag-focus{background:rgba(111,176,160,.18);color:var(--sage-d)}
-  .tag-base{background:var(--cream-2);color:var(--ink-soft)}
-  .svc .ic{width:54px;height:54px;border-radius:50% 50% 14px 50%;display:grid;place-items:center;font-size:1.4rem;margin-bottom:20px}
-  .svc h3{font-family:var(--jpr);font-weight:700;font-size:1.2rem;color:var(--ink);margin-bottom:10px}
-  .svc.big h3{font-size:1.42rem}
-  .svc p{color:var(--ink-soft);font-size:.92rem;margin-bottom:20px}
-  .svc .more{margin-top:auto;font-family:var(--jpr);font-weight:700;font-size:.86rem;color:var(--coral-d);display:inline-flex;align-items:center;gap:6px}
-  .svc .more .arr{transition:.3s}
-  .svc:hover .more .arr{transform:translateX(5px)}
-
-  /* ---------- AI band (warm deep) ---------- */
-  .ai{background:linear-gradient(135deg,#4a322a,#5d3d31 55%,#6b4a3a);color:#fff;border-radius:36px;overflow:hidden;position:relative;margin:0 28px}
-  .ai-inner{max-width:var(--maxw);margin:0 auto;padding:84px 28px;display:grid;grid-template-columns:1fr 1fr;gap:56px;align-items:center}
-  .ai::before{content:"";position:absolute;inset:0;background:radial-gradient(50% 60% at 85% 25%,rgba(244,124,102,.4),transparent 60%),radial-gradient(45% 55% at 8% 95%,rgba(235,182,89,.3),transparent 60%)}
-  .ai>*{position:relative}
-  .ai .kicker{color:var(--peach)}
-  .ai .kicker::before{background:var(--peach)}
-  .ai h2{font-family:var(--jpr);font-weight:900;font-size:clamp(1.7rem,3vw,2.45rem);line-height:1.45;margin:16px 0 20px;color:#fff}
-  .ai p{color:rgba(255,255,255,.85);font-size:1rem;max-width:46ch}
-  .ai-flow{display:flex;flex-direction:column;gap:13px}
-  .flow-node{display:flex;align-items:center;gap:16px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.16);border-radius:18px;padding:16px 20px;backdrop-filter:blur(6px)}
-  .flow-node .step{font-family:var(--disp);font-style:italic;font-size:1rem;color:var(--peach);width:30px;flex-shrink:0}
-  .flow-node .lbl{font-family:var(--jpr);font-weight:700;font-size:.98rem}
-  .flow-node .desc{font-size:.78rem;color:rgba(255,255,255,.62);margin-left:auto;text-align:right}
-  .flow-node.hl{background:linear-gradient(120deg,rgba(244,124,102,.3),rgba(235,182,89,.2));border-color:rgba(255,198,166,.5)}
-
-  /* ---------- works ---------- */
-  .work-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:24px}
-  .work{border:1px solid var(--line);border-radius:var(--r);overflow:hidden;background:#fff;transition:.35s}
-  .work:hover{transform:translateY(-7px);box-shadow:var(--shadow)}
-  .work .cap{height:140px;position:relative;overflow:hidden;display:grid;place-items:center}
-  .work .cap.c1{background:linear-gradient(135deg,#ffe6d4,var(--peach))}
-  .work .cap.c2{background:linear-gradient(135deg,#ffd9c4,#ffb89e)}
-  .work .cap.c3{background:linear-gradient(135deg,#e3f0eb,#bfe0d6)}
-  .work .cap .emoji{font-size:3rem;filter:drop-shadow(0 6px 12px rgba(74,53,46,.18))}
-  .work .cap .badge{position:absolute;top:14px;left:14px;font-family:var(--jpr);font-weight:700;font-size:.68rem;background:#fff;padding:6px 12px;border-radius:999px;color:var(--coral-d)}
-  .work .body{padding:26px}
-  .work h3{font-family:var(--jpr);font-weight:700;font-size:1.08rem;color:var(--ink);margin-bottom:10px}
-  .work .body p{color:var(--ink-soft);font-size:.88rem}
-  .work .res{display:flex;align-items:baseline;gap:8px;margin-top:16px;padding-top:16px;border-top:1px dashed var(--line)}
-  .work .res .big{font-family:var(--disp);font-weight:700;font-size:1.8rem;color:var(--coral-d)}
-  .work .res .t{font-family:var(--jpr);font-size:.82rem;color:var(--ink-soft);font-weight:700}
-
-  /* ---------- flow / steps ---------- */
-  .steps{background:var(--cream-2)}
-  .step-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:22px;counter-reset:s}
-  .step-c{background:#fff;border:1px solid var(--line);border-radius:var(--r);padding:34px 28px;position:relative}
-  .step-c::before{counter-increment:s;content:counter(s);font-family:var(--disp);font-style:italic;font-weight:700;font-size:2.6rem;color:var(--peach);position:absolute;top:20px;right:26px;opacity:.5}
-  .step-c .ph{font-family:var(--disp);font-style:italic;font-size:.9rem;color:var(--sage-d)}
-  .step-c h3{font-family:var(--jpr);font-weight:700;font-size:1.1rem;color:var(--ink);margin:8px 0 10px}
-  .step-c p{color:var(--ink-soft);font-size:.86rem}
-
-  /* ---------- company ---------- */
-  .company-grid{display:grid;grid-template-columns:.85fr 1.15fr;gap:54px;align-items:center}
-  .co-card{background:#fff;border:1px solid var(--line);border-radius:26px;box-shadow:var(--shadow);overflow:hidden}
-  .co-card .top{background:linear-gradient(120deg,var(--coral),#ff9472);color:#fff;padding:28px 32px;display:flex;align-items:center;gap:15px}
-  .co-card .top .mark{position:relative;width:40px;height:40px;flex-shrink:0}
-  .co-card .top .mark .c1{position:absolute;width:28px;height:28px;border-radius:50%;background:rgba(255,255,255,.95);top:0;left:0}
-  .co-card .top .mark .c2{position:absolute;width:18px;height:18px;border-radius:50%;background:var(--gold);bottom:0;right:0}
-  .co-card .top h3{font-family:var(--disp);font-weight:700;font-size:1.6rem;letter-spacing:-.01em}
-  .co-card .top small{font-family:var(--jp);font-size:.6rem;opacity:.9;letter-spacing:.14em;display:block;margin-top:-2px}
-  .co-table{padding:12px 32px 26px}
-  .co-table .row{display:flex;gap:16px;padding:15px 0;border-bottom:1px dashed var(--line);font-size:.92rem}
-  .co-table .row:last-child{border:none}
-  .co-table .k{font-family:var(--jpr);font-weight:700;color:var(--ink-soft);width:84px;flex-shrink:0;font-size:.85rem}
-  .co-table .v{font-family:var(--jp);color:var(--ink)}
-  .co-table .v b{color:var(--ink);font-weight:700}
-
-  /* ---------- final CTA ---------- */
-  .cta{padding:112px 0}
-  .cta-box{background:linear-gradient(125deg,var(--coral),#ff9472 55%,var(--gold));border-radius:36px;padding:78px 40px;text-align:center;color:#fff;position:relative;overflow:hidden}
-  .cta-box::before{content:"";position:absolute;top:-80px;left:-60px;width:280px;height:280px;border-radius:50%;background:radial-gradient(circle,rgba(255,255,255,.28),transparent 65%)}
-  .cta-box::after{content:"";position:absolute;bottom:-100px;right:-60px;width:300px;height:300px;border-radius:50%;background:radial-gradient(circle,rgba(255,255,255,.18),transparent 65%)}
-  .cta-box>*{position:relative}
-  .cta-box h2{font-family:var(--jpr);font-weight:900;font-size:clamp(1.7rem,3.6vw,2.6rem);line-height:1.5;margin-bottom:16px;color:#fff}
-  .cta-box p{color:rgba(255,255,255,.92);margin-bottom:36px;font-size:1.05rem}
-  .cta-box .btn-primary{background:#fff;color:var(--coral-d);box-shadow:0 14px 36px rgba(0,0,0,.16)}
-  .cta-box .btn-ghost{background:transparent;border-color:rgba(255,255,255,.7);color:#fff}
-  .cta-box .btn-ghost:hover{background:rgba(255,255,255,.15);border-color:#fff;color:#fff}
-
-  /* ---------- footer ---------- */
-  footer{background:var(--deep);color:rgba(255,255,255,.76);padding:74px 0 30px;font-size:.9rem}
-  .foot-grid{display:grid;grid-template-columns:1.4fr 1fr 1fr 1.3fr;gap:40px;padding-bottom:48px;border-bottom:1px solid rgba(255,255,255,.12)}
-  .foot-logo{display:flex;align-items:center;gap:11px;font-family:var(--disp);font-weight:600;font-size:1.6rem;color:#fff;margin-bottom:18px}
-  .foot-logo .mark{position:relative;width:32px;height:32px}
-  .foot-logo .mark .c1{position:absolute;width:22px;height:22px;border-radius:50%;background:linear-gradient(135deg,var(--coral),var(--peach));top:0;left:0}
-  .foot-logo .mark .c2{position:absolute;width:14px;height:14px;border-radius:50%;background:var(--gold);bottom:0;right:0}
-  footer .desc{max-width:30ch;font-size:.85rem;line-height:1.85}
-  .foot-col h4{font-family:var(--jpr);font-weight:700;color:#fff;font-size:.92rem;margin-bottom:16px}
-  .foot-col ul{list-style:none;display:flex;flex-direction:column;gap:11px}
-  .foot-col a{transition:.2s;font-size:.86rem}
-  .foot-col a:hover{color:var(--peach)}
-  .foot-info{font-size:.82rem;line-height:1.95;font-style:normal}
-  .foot-info b{color:#fff;font-weight:500}
-  .copy{display:flex;justify-content:space-between;align-items:center;padding-top:26px;font-family:var(--jp);font-size:.74rem;color:rgba(255,255,255,.5);flex-wrap:wrap;gap:10px}
-  .copy .l{font-family:var(--disp);font-style:italic}
-
-  .reveal{opacity:0;transform:translateY(28px);transition:.8s cubic-bezier(.2,.7,.3,1)}
+  .reveal{opacity:0;transform:translateY(22px);transition:.9s cubic-bezier(.2,.7,.3,1)}
   .reveal.in{opacity:1;transform:none}
 
-  @media(max-width:960px){
-    .hero-grid,.ai-inner,.company-grid{grid-template-columns:1fr;gap:44px}
-    .stat-grid{grid-template-columns:repeat(2,1fr)}
-    .str-grid{grid-template-columns:1fr}
-    .svc-grid{grid-template-columns:1fr}
-    .svc.big,.svc.sm{grid-column:span 1}
-    .work-grid{grid-template-columns:1fr}
-    .step-grid{grid-template-columns:repeat(2,1fr)}
-    .foot-grid{grid-template-columns:1fr 1fr;gap:30px}
-    nav ul,.nav-cta .btn{display:none}
+  /* ---------- top meta ---------- */
+  .meta-bar{
+    display:flex;justify-content:space-between;padding:13px 0;border-bottom:1px solid var(--line-d);
+    font-family:var(--lat);font-size:.66rem;letter-spacing:.16em;color:var(--ink-2);text-transform:uppercase;
+    gap:16px;flex-wrap:wrap;
+  }
+  .meta-bar b{color:var(--ink);font-weight:600}
+
+  /* ---------- header ---------- */
+  .hdr{position:sticky;top:0;z-index:100;background:rgba(247,245,239,.92);backdrop-filter:blur(10px);transition:.3s}
+  .hdr.scrolled{box-shadow:0 1px 0 var(--line),0 10px 30px rgba(33,30,24,.05)}
+  .nav{display:flex;align-items:center;justify-content:space-between;padding:20px 0}
+  .logo{font-family:var(--lat);font-weight:600;font-size:1.45rem;letter-spacing:-.03em}
+  .logo sup{font-size:.58rem;vertical-align:super;color:var(--teal)}
+  nav ul{display:flex;gap:38px;list-style:none;font-size:.88rem;font-weight:500}
+  nav a{transition:.2s}
+  nav a:hover{color:var(--teal)}
+  .nav-cta{
+    font-weight:700;font-size:.86rem;border:1px solid var(--ink);border-radius:999px;
+    padding:12px 28px;transition:.25s;white-space:nowrap;
+  }
+  .nav-cta:hover{background:var(--ink);color:var(--paper)}
+  .menu-btn{display:none;background:none;border:none;cursor:pointer;flex-direction:column;gap:5px;padding:6px}
+  .menu-btn span{width:24px;height:2px;background:var(--ink)}
+
+  /* ---------- hero ---------- */
+  .hero{padding:72px 0 56px;display:grid;grid-template-columns:1.02fr .98fr;gap:64px;align-items:center}
+  .hero .kicker{margin-bottom:30px}
+  h1{
+    font-family:var(--serif);font-weight:800;
+    font-size:clamp(2.1rem,3.7vw,3.35rem);line-height:1.55;letter-spacing:.015em;
+  }
+  h1 em{font-style:normal;color:var(--teal)}
+  .hero .sub{margin:30px 0 40px;color:var(--ink-2);font-size:1.02rem;max-width:46ch;line-height:2.15}
+  .hero .sub b{color:var(--ink);font-weight:700}
+  .hero-actions{display:flex;gap:22px;align-items:center;flex-wrap:wrap}
+  .hero-note{margin-top:34px;font-size:.82rem;color:var(--ink-2);display:flex;gap:26px;flex-wrap:wrap}
+  .hero-note span{display:flex;align-items:center;gap:9px}
+  .hero-note span::before{content:"";width:5px;height:5px;border-radius:50%;background:var(--teal)}
+  .hero-note b{color:var(--ink);font-weight:700}
+
+  /* ---------- demo window ---------- */
+  .demo-cap{
+    font-family:var(--lat);font-size:.64rem;letter-spacing:.14em;color:var(--ink-2);
+    display:flex;justify-content:space-between;margin-bottom:12px;text-transform:uppercase;gap:12px;
+  }
+  .demo-cap b{color:var(--teal);font-weight:600;display:flex;align-items:center;gap:7px}
+  .demo-cap b::before{content:"";width:7px;height:7px;border-radius:50%;background:var(--green);animation:pulse 1.8s infinite}
+  @keyframes pulse{0%,100%{opacity:1}50%{opacity:.25}}
+  .demo{
+    background:var(--paper-2);border:1px solid var(--line);border-radius:20px;
+    box-shadow:0 34px 80px rgba(33,30,24,.13),0 4px 14px rgba(33,30,24,.05);overflow:hidden;
+  }
+  .demo-head{
+    display:flex;align-items:center;gap:12px;padding:15px 22px;border-bottom:1px solid var(--line);
+    font-size:.84rem;font-weight:700;
+  }
+  .demo-head .mk{width:26px;height:26px;border-radius:8px;background:var(--teal-soft);display:grid;place-items:center;flex-shrink:0}
+  .demo-head .mk svg{width:14px;height:14px}
+  .demo-head small{font-family:var(--lat);font-weight:500;font-size:.62rem;color:var(--ink-2);margin-left:auto;letter-spacing:.08em}
+  .steps{padding:24px 22px;display:flex;flex-direction:column;gap:12px}
+  .stp{
+    display:flex;align-items:center;gap:15px;border:1px solid var(--line);border-radius:14px;
+    padding:14px 18px;background:var(--paper-2);transition:.45s;position:relative;
+  }
+  .stp .ic{width:36px;height:36px;border-radius:11px;display:grid;place-items:center;flex-shrink:0}
+  .stp .ic svg{width:17px;height:17px}
+  .stp .tx{line-height:1.55;min-width:0}
+  .stp .tx h4{font-size:.88rem;font-weight:700}
+  .stp .tx p{font-size:.72rem;color:var(--ink-2)}
+  .stp .st{margin-left:auto;font-family:var(--lat);font-size:.64rem;font-weight:600;letter-spacing:.06em;display:flex;align-items:center;gap:7px;flex-shrink:0;color:var(--ink-2)}
+  .stp[data-state="done"]{border-color:rgba(31,163,124,.4)}
+  .stp[data-state="done"] .st{color:var(--green)}
+  .stp[data-state="done"] .st::before{content:"✓"}
+  .stp[data-state="run"]{border-color:var(--teal);box-shadow:0 10px 26px rgba(14,107,92,.14)}
+  .stp[data-state="run"] .st{color:var(--teal)}
+  .stp[data-state="run"] .st::before{content:"";width:7px;height:7px;border-radius:50%;background:var(--teal);animation:pulse 1.1s infinite}
+  .stp[data-state="wait"]{opacity:.62}
+  .demo-foot{border-top:1px solid var(--line);display:grid;grid-template-columns:1fr 1fr 1fr;background:var(--paper-3)}
+  .demo-foot>div{padding:16px 22px;border-right:1px solid var(--line)}
+  .demo-foot>div:last-child{border-right:none}
+  .demo-foot .v{font-family:var(--serif);font-weight:800;font-size:1.35rem;color:var(--teal)}
+  .demo-foot .v.n{color:var(--ink)}
+  .demo-foot .k{font-size:.68rem;color:var(--ink-2);margin-top:2px}
+
+  /* ---------- ledger ---------- */
+  .ledger-wrap{border-top:1px solid var(--line-d);padding-bottom:56px}
+  .ledger{display:grid;grid-template-columns:repeat(3,1fr)}
+  .ledger>div{padding:38px 38px 8px;border-right:1px solid var(--line)}
+  .ledger>div:first-child{padding-left:0}
+  .ledger>div:last-child{border-right:none}
+  .ledger .idx{font-family:var(--lat);font-size:.64rem;letter-spacing:.16em;color:var(--teal);font-weight:600}
+  .ledger .num{font-family:var(--serif);font-weight:800;font-size:clamp(2.3rem,3.8vw,3.4rem);line-height:1.2;margin-top:12px}
+  .ledger .num small{font-size:.42em;font-weight:700;margin-left:3px}
+  .ledger .cap{font-size:.84rem;color:var(--ink-2);margin-top:8px;line-height:1.85}
+  .ledger .cap b{color:var(--ink)}
+
+  .sec{padding:104px 0}
+
+  /* ---------- services ---------- */
+  .svc-head{display:grid;grid-template-columns:1fr auto;gap:40px;align-items:end;margin-bottom:64px}
+  .svc-list{border-top:1px solid var(--line-d)}
+  .svc{
+    display:grid;grid-template-columns:110px 1fr 1.1fr auto;gap:32px;align-items:baseline;
+    padding:38px 0;border-bottom:1px solid var(--line);transition:.3s;position:relative;
+  }
+  .svc:hover{padding-left:14px}
+  .svc:hover .svc-name{color:var(--teal)}
+  .svc .no{font-family:var(--lat);font-size:.78rem;letter-spacing:.1em;color:var(--ink-2);font-weight:500}
+  .svc .no b{color:var(--teal);font-weight:600}
+  .svc-name{font-family:var(--serif);font-weight:700;font-size:clamp(1.25rem,2vw,1.7rem);line-height:1.6;transition:.3s}
+  .svc .desc{font-size:.9rem;color:var(--ink-2);line-height:2;max-width:46ch}
+  .svc .desc b{color:var(--ink);font-weight:700}
+  .svc .tag{
+    font-family:var(--lat);font-size:.6rem;letter-spacing:.14em;font-weight:600;
+    border:1px solid var(--line);border-radius:999px;padding:6px 14px;color:var(--ink-2);white-space:nowrap;
+  }
+  .svc .tag.main{border-color:var(--teal);color:var(--teal);background:var(--teal-soft)}
+
+  /* ---------- AI band ---------- */
+  .ai-band{background:var(--teal-deep);color:#F2EFE6;border-radius:28px;margin:0 40px;overflow:hidden;position:relative}
+  .ai-band::before{
+    content:"";position:absolute;inset:0;opacity:.4;
+    background:radial-gradient(60% 80% at 88% 10%,rgba(31,163,124,.35),transparent 65%),
+               radial-gradient(45% 60% at 5% 95%,rgba(217,154,43,.14),transparent 60%);
+  }
+  .ai-inner{max-width:1280px;margin:0 auto;padding:96px 48px;position:relative}
+  .ai-band .kicker{color:#8FD6BC}
+  .ai-band .kicker::before{background:#8FD6BC}
+  .ai-band h2{
+    font-family:var(--serif);font-weight:800;font-size:clamp(1.9rem,3vw,2.7rem);
+    line-height:1.6;margin-top:22px;
+  }
+  .ai-band h2 em{font-style:normal;color:#8FD6BC}
+  .ai-band .lead{color:rgba(242,239,230,.75);max-width:54ch}
+  .ai-band .lead b{color:#fff}
+  .ai-grid{display:grid;grid-template-columns:1fr 1fr;gap:64px;align-items:center}
+  .promise{display:flex;flex-direction:column}
+  .promise>div{
+    display:flex;gap:22px;padding:22px 0;border-bottom:1px solid rgba(242,239,230,.14);align-items:baseline;
+  }
+  .promise>div:last-child{border-bottom:none}
+  .promise .n{font-family:var(--lat);font-size:.72rem;letter-spacing:.1em;color:#8FD6BC;font-weight:600;width:30px;flex-shrink:0}
+  .promise h3{font-family:var(--serif);font-weight:700;font-size:1.08rem;width:11em;flex-shrink:0;line-height:1.7}
+  .promise p{font-size:.82rem;color:rgba(242,239,230,.68);line-height:1.9}
+
+  /* ---------- cases ---------- */
+  .case-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:28px;margin-top:64px}
+  .case{
+    background:var(--paper-2);border:1px solid var(--line);border-radius:20px;padding:36px 34px;
+    display:flex;flex-direction:column;transition:.35s;
+  }
+  .case:hover{transform:translateY(-6px);box-shadow:0 26px 60px rgba(33,30,24,.1);border-color:rgba(14,107,92,.3)}
+  .case .tag{
+    font-family:var(--lat);font-size:.6rem;letter-spacing:.14em;font-weight:600;color:var(--teal);
+    border:1px solid rgba(14,107,92,.3);background:var(--teal-soft);border-radius:999px;
+    padding:6px 14px;width:fit-content;margin-bottom:26px;
+  }
+  .case h3{font-family:var(--serif);font-weight:700;font-size:1.18rem;line-height:1.75;margin-bottom:12px}
+  .case p{font-size:.86rem;color:var(--ink-2);line-height:2}
+  .case .res{margin-top:auto;padding-top:24px;display:flex;align-items:baseline;gap:10px;border-top:1px solid var(--line)}
+  .case .res .big{font-family:var(--serif);font-weight:800;font-size:2.1rem;color:var(--teal)}
+  .case .res .t{font-size:.78rem;color:var(--ink-2);line-height:1.6}
+
+  /* ---------- flow ---------- */
+  .flow-wrap{background:var(--paper-3);border-block:1px solid var(--line)}
+  .flow-grid{display:grid;grid-template-columns:repeat(4,1fr);margin-top:64px;border-left:1px solid var(--line)}
+  .flow-step{border-right:1px solid var(--line);padding:8px 32px 6px;position:relative}
+  .flow-step .n{font-family:var(--serif);font-weight:800;font-size:2.4rem;color:var(--teal);opacity:.85;line-height:1.4}
+  .flow-step h3{font-family:var(--serif);font-weight:700;font-size:1.12rem;margin:14px 0 10px;line-height:1.7}
+  .flow-step p{font-size:.84rem;color:var(--ink-2);line-height:2}
+
+  /* ---------- company ---------- */
+  .co-grid{display:grid;grid-template-columns:.9fr 1.1fr;gap:72px;align-items:start}
+  .co-table{border-top:1px solid var(--line-d)}
+  .co-table .row{display:flex;gap:28px;padding:20px 0;border-bottom:1px solid var(--line);font-size:.92rem}
+  .co-table .k{font-family:var(--lat);font-size:.68rem;letter-spacing:.14em;color:var(--ink-2);width:110px;flex-shrink:0;font-weight:600;text-transform:uppercase;padding-top:5px}
+  .co-table .v{line-height:2}
+  .co-table .v b{font-weight:700}
+
+  /* ---------- CTA ---------- */
+  .cta{padding:128px 0 120px;text-align:center;border-top:1px solid var(--line-d)}
+  .cta .kicker{justify-content:center}
+  .cta .kicker::before{display:none}
+  .cta h2{
+    font-family:var(--serif);font-weight:800;font-size:clamp(2rem,4vw,3.2rem);line-height:1.6;margin-top:24px;
+  }
+  .cta h2 em{font-style:normal;color:var(--teal)}
+  .cta p{color:var(--ink-2);margin:22px auto 44px;max-width:44ch;font-size:.98rem;line-height:2.1}
+  .cta-actions{display:flex;gap:22px;justify-content:center;align-items:center;flex-wrap:wrap}
+
+  /* ---------- footer ---------- */
+  footer{border-top:1px solid var(--line-d);padding:36px 0 44px;font-size:.82rem;color:var(--ink-2)}
+  .foot{display:flex;justify-content:space-between;gap:28px;flex-wrap:wrap;align-items:baseline}
+  .foot .logo{font-size:1.2rem;color:var(--ink)}
+  .foot ul{display:flex;gap:26px;list-style:none;flex-wrap:wrap}
+  .foot a:hover{color:var(--teal)}
+  .foot .addr{font-style:normal;line-height:2}
+  .foot-copy{
+    margin-top:30px;padding-top:18px;border-top:1px solid var(--line);
+    display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap;
+    font-family:var(--lat);font-size:.66rem;letter-spacing:.12em;text-transform:uppercase;
+  }
+
+  @media(max-width:1020px){
+    .frame{padding:0 24px}
+    nav,.nav .nav-cta{display:none}
     .menu-btn{display:flex}
-    .hero{padding:128px 0 72px}
+    .hero{grid-template-columns:1fr;gap:48px;padding:48px 0}
+    .ledger{grid-template-columns:1fr}
+    .ledger>div{border-right:none;border-bottom:1px solid var(--line);padding-left:0}
+    .svc{grid-template-columns:1fr;gap:10px;padding:30px 0}
+    .svc .tag{width:fit-content}
+    .ai-band{margin:0 16px;border-radius:22px}
+    .ai-inner{padding:64px 28px}
+    .ai-grid{grid-template-columns:1fr;gap:44px}
+    .promise h3{width:auto}
+    .promise>div{flex-wrap:wrap}
+    .case-grid{grid-template-columns:1fr}
+    .flow-grid{grid-template-columns:1fr;border-left:none}
+    .flow-step{border-right:none;border-bottom:1px solid var(--line);padding:24px 0}
+    .co-grid{grid-template-columns:1fr;gap:44px}
+    .demo-foot{grid-template-columns:1fr}
+    .demo-foot>div{border-right:none;border-bottom:1px solid var(--line)}
+    .sec{padding:72px 0}
+    .svc-head{grid-template-columns:1fr;gap:24px}
   }
-  @media(max-width:560px){
-    .stat-grid,.step-grid,.foot-grid{grid-template-columns:1fr}
-    .wrap{padding:0 20px}
-    .ai{margin:0 16px}
+
+  /* mobile menu */
+  .m-menu{
+    display:none;position:fixed;inset:0;z-index:200;background:var(--paper);padding:28px 24px;
   }
+  .m-menu.open{display:block}
+  .m-menu .top{display:flex;justify-content:space-between;align-items:center;margin-bottom:40px}
+  .m-menu .close{background:none;border:none;font-size:1.6rem;cursor:pointer;color:var(--ink);line-height:1}
+  .m-menu ul{list-style:none;display:flex;flex-direction:column}
+  .m-menu li{border-bottom:1px solid var(--line)}
+  .m-menu a{display:block;padding:20px 0;font-family:var(--serif);font-weight:700;font-size:1.3rem}
 </style>
 </head>
 <body>
 
-<!-- ===== HEADER ===== -->
-<header id="hdr">
-  <div class="wrap nav">
-    <a href="#" class="logo">
-      <span class="mark"><span class="c1"></span><span class="c2"></span><span class="dot"></span></span>
-      <span>Hi-Fi<small>HIGH FIDELITY</small></span>
-    </a>
-    <nav>
-      <ul>
-        <li><a href="#services">サービス</a></li>
-        <li><a href="#ai">AIへの取り組み</a></li>
-        <li><a href="#works">実績</a></li>
-        <li><a href="#company">会社概要</a></li>
-        <li><a href="#news">お知らせ</a></li>
-      </ul>
-    </nav>
-    <div class="nav-cta">
-      <a href="#contact" class="btn btn-primary">お問い合わせ <span class="arr">→</span></a>
-      <button class="menu-btn" aria-label="メニュー"><span></span><span></span><span></span></button>
-    </div>
-  </div>
-</header>
-
-<!-- ===== HERO ===== -->
-<section class="hero">
-  <span class="blob blob-1"></span>
-  <div class="wrap hero-grid">
-    <div class="hero-copy">
-      <span class="kicker reveal">Tools · Workflow · AI</span>
-      <h1 class="reveal" style="transition-delay:.08s">あなたの<span class="hl">“面倒”</span>に、<br>やさしく寄り添う。</h1>
-      <p class="sub reveal" style="transition-delay:.16s">業務を簡単にするツール開発・ワークフロー改善から、SNS集客・動画編集まで。最新AIを活用し、個人・中小企業の“面倒”をまるごと軽くします。「何から相談すればいいかわからない」——そんな段階から、一緒に考えます。</p>
-      <div class="hero-actions reveal" style="transition-delay:.24s">
-        <a href="#contact" class="btn btn-primary">まずは無料で相談する <span class="arr">→</span></a>
-        <a href="#services" class="btn btn-ghost">サービスを見る</a>
-      </div>
-      <div class="hero-meta reveal" style="transition-delay:.32s">
-        <span class="pill"><b>High Fidelity</b> ＝ 高品質・忠実・クリア</span>
-        <span class="pill">横浜発・<b>全国対応</b></span>
-      </div>
-    </div>
-
-    <div class="hero-visual reveal" style="transition-delay:.2s">
-      <div class="glow-card">
-        <div class="gc-head">
-          <div class="gc-ava">🌿</div>
-          <div class="t">Hi-Fiが、こんなことをお手伝い<span>あなたに合わせて、ちょうどよく。</span></div>
-        </div>
-        <div class="gc-rows">
-          <div class="gc-row"><span class="ic" style="background:rgba(244,124,102,.16)">⚙️</span>面倒な業務を自動化<span class="v">-70%<small> 経費</small></span></div>
-          <div class="gc-row"><span class="ic" style="background:rgba(235,182,89,.2)">🎬</span>ショート動画運用<span class="v">3,000万<small> 再生/月</small></span></div>
-          <div class="gc-row"><span class="ic" style="background:rgba(111,176,160,.2)">📲</span>SNS集客をやさしく仕組み化<span class="v">+ 反響</span></div>
-        </div>
-      </div>
-      <div class="float-tag ft-1"><span class="em">🏆</span>YouTube<br>銀の盾 保有</div>
-      <div class="float-tag ft-2"><span class="em">🤝</span>寄り添う<br>伴走サポート</div>
-    </div>
-  </div>
-</section>
-
-<!-- ===== STRIP ===== -->
-<div class="strip">
-  <div class="strip-track">
-    <span>業務効率化ツール開発 <i>●</i> ワークフロー簡易化 <i>●</i> SNS集客サポート <i>●</i> 動画編集 <i>●</i> 非属人制YouTube運営 <i>●</i> AI活用支援 <i>●</i></span>
-    <span>業務効率化ツール開発 <i>●</i> ワークフロー簡易化 <i>●</i> SNS集客サポート <i>●</i> 動画編集 <i>●</i> 非属人制YouTube運営 <i>●</i> AI活用支援 <i>●</i></span>
+<div class="frame">
+  <div class="meta-bar">
+    <span><b>Hi-Fi</b> — High Fidelity Inc.</span>
+    <span>業務の仕組み化 × AI</span>
+    <span>Yokohama — Est. <b>2017</b></span>
   </div>
 </div>
 
-<!-- ===== STATS ===== -->
-<section class="sec stats">
-  <div class="wrap">
-    <div class="sec-head center reveal">
-      <span class="kicker">Our results</span>
-      <h2 class="title" style="margin-top:14px">数字が証明する、確かな実力</h2>
-      <p class="lead">非属人制でここまで伸ばせる。仕組みとAIで出した、リアルな成果です。</p>
+<div class="hdr" id="hdr">
+  <div class="frame nav">
+    <a href="#" class="logo">Hi-Fi<sup>®</sup></a>
+    <nav>
+      <ul>
+        <li><a href="#services">できること</a></li>
+        <li><a href="#cases">導入事例</a></li>
+        <li><a href="#ai">AIとの向き合い方</a></li>
+        <li><a href="#company">会社概要</a></li>
+      </ul>
+    </nav>
+    <a href="#contact" class="nav-cta">相談してみる</a>
+    <button class="menu-btn" id="menuBtn" aria-label="メニュー"><span></span><span></span><span></span></button>
+  </div>
+</div>
+
+<div class="m-menu" id="mMenu">
+  <div class="top">
+    <span class="logo">Hi-Fi<sup>®</sup></span>
+    <button class="close" id="menuClose" aria-label="閉じる">×</button>
+  </div>
+  <ul>
+    <li><a href="#services">できること</a></li>
+    <li><a href="#cases">導入事例</a></li>
+    <li><a href="#ai">AIとの向き合い方</a></li>
+    <li><a href="#company">会社概要</a></li>
+    <li><a href="#contact">相談してみる</a></li>
+  </ul>
+</div>
+
+<!-- ===== HERO ===== -->
+<section class="frame hero">
+  <div>
+    <div class="kicker reveal">Systems &amp; AI Engineering</div>
+    <h1 class="reveal" style="transition-delay:.06s">面倒な仕事が、<br>朝には<em>終わっている</em>。</h1>
+    <p class="sub reveal" style="transition-delay:.12s">株式会社Hi-Fiは、毎日の決まった仕事を「自動で回る仕組み」に変える会社です。AIの難しい話は、私たちが預かります。お客様に見えるのは、<b>静かに終わっていく仕事</b>だけ。</p>
+    <div class="hero-actions reveal" style="transition-delay:.18s">
+      <a href="#contact" class="btn-fill">仕組み化の相談をする →</a>
+      <a href="#cases" class="btn-under">導入事例を見る</a>
     </div>
-    <div class="stat-grid">
-      <div class="stat reveal"><div class="num" data-to="3000" data-suffix="万+">0</div><div class="lb">ショート動画 月間再生数</div><div class="sub">1チャンネルあたり</div></div>
-      <div class="stat reveal" style="transition-delay:.1s"><div class="num" data-to="500" data-suffix="万+">0</div><div class="lb">長尺動画 月間再生数</div><div class="sub">1チャンネルあたり</div></div>
-      <div class="stat reveal" style="transition-delay:.2s"><div class="num" data-to="70" data-suffix="%">0</div><div class="lb">経費を削減</div><div class="sub">AI管理ツールの導入で</div></div>
-      <div class="stat badge-stat reveal" style="transition-delay:.3s"><div class="shield">🏆</div><div class="shield-t">YouTube 銀の盾</div><div class="lb" style="margin-top:8px">登録者10万人達成の証</div><div class="sub">非属人制チャンネルで獲得</div></div>
+    <div class="hero-note reveal" style="transition-delay:.24s">
+      <span>経費 <b>7割削減</b> の実績</span>
+      <span>月間 <b>3,000万再生</b> を仕組みで運用</span>
+      <span>YouTube <b>銀の盾</b> 受賞</span>
+    </div>
+  </div>
+
+  <div class="reveal" style="transition-delay:.15s">
+    <div class="demo-cap"><b>いま動いている仕組み（実例）</b><span>毎朝 9:00 自動実行</span></div>
+    <div class="demo" id="demo">
+      <div class="demo-head">
+        <span class="mk"><svg viewBox="0 0 24 24" fill="none" stroke="#0E6B5C" stroke-width="2"><path d="M12 3v3M12 18v3M3 12h3M18 12h3M5.6 5.6l2.1 2.1M16.3 16.3l2.1 2.1M18.4 5.6l-2.1 2.1M7.7 16.3l-2.1 2.1"/><circle cx="12" cy="12" r="3.5"/></svg></span>
+        朝の請求業務 — 自動処理
+        <small>DAILY-OPS / RUNNING</small>
+      </div>
+      <div class="steps">
+        <div class="stp" data-state="wait">
+          <span class="ic" style="background:rgba(31,163,124,.1)"><svg viewBox="0 0 24 24" fill="none" stroke="#1FA37C" stroke-width="2"><path d="M4 5h16v14H4z"/><path d="M4 10h16M9 5v14"/></svg></span>
+          <span class="tx"><h4>昨日の受注データを集める</h4><p>142件 — 3つのシステムから自動で取得</p></span>
+          <span class="st">待機中</span>
+        </div>
+        <div class="stp" data-state="wait">
+          <span class="ic" style="background:rgba(31,163,124,.1)"><svg viewBox="0 0 24 24" fill="none" stroke="#1FA37C" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M8.5 12.5l2.5 2.5 4.5-5"/></svg></span>
+          <span class="tx"><h4>内容をAIが確認・仕分け</h4><p>精度 99.2% — 迷ったものは人へ回す</p></span>
+          <span class="st">待機中</span>
+        </div>
+        <div class="stp" data-state="wait">
+          <span class="ic" style="background:var(--teal-soft)"><svg viewBox="0 0 24 24" fill="none" stroke="#0E6B5C" stroke-width="2"><path d="M6 3h9l5 5v13H6z"/><path d="M14 3v6h6M9 13h6M9 17h6"/></svg></span>
+          <span class="tx"><h4>請求書をつくる</h4><p>142件 — ミスなく一括作成</p></span>
+          <span class="st">待機中</span>
+        </div>
+        <div class="stp" data-state="wait">
+          <span class="ic" style="background:rgba(217,154,43,.12)"><svg viewBox="0 0 24 24" fill="none" stroke="#D99A2B" stroke-width="2"><path d="M12 4l8.5 15h-17z"/><path d="M12 10v4M12 17.2v.3"/></svg></span>
+          <span class="tx"><h4>気になるものだけ、人に知らせる</h4><p>4件 — 担当者のチャットへ通知</p></span>
+          <span class="st">待機中</span>
+        </div>
+        <div class="stp" data-state="wait">
+          <span class="ic" style="background:rgba(33,30,24,.07)"><svg viewBox="0 0 24 24" fill="none" stroke="#211E18" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg></span>
+          <span class="tx"><h4>最後は人が承認する</h4><p>AI任せにしない、確認のひと手間</p></span>
+          <span class="st">待機中</span>
+        </div>
+      </div>
+      <div class="demo-foot">
+        <div><div class="v">2分14秒</div><div class="k">この仕事にかかる時間</div></div>
+        <div><div class="v n">6.5時間</div><div class="k">以前かかっていた時間</div></div>
+        <div><div class="v">0件</div><div class="k">導入後の請求ミス</div></div>
+      </div>
     </div>
   </div>
 </section>
 
-<!-- ===== STRENGTHS ===== -->
-<section class="sec">
-  <div class="wrap">
-    <div class="sec-head reveal">
-      <span class="kicker">Why Hi-Fi</span>
-      <h2 class="title" style="margin-top:14px">選ばれる、3つの理由</h2>
-      <p class="lead">成果も、安心も、話しやすさも。ぜんぶ大事にしたいから、Hi-Fiは欲ばりです。</p>
+<!-- ===== LEDGER ===== -->
+<div class="frame ledger-wrap">
+  <div class="ledger">
+    <div class="reveal">
+      <div class="idx">実績 — 01</div>
+      <div class="num">−70<small>%</small></div>
+      <div class="cap"><b>運用経費の削減。</b>手作業だった管理業務を、自社開発のAIツールに置き換えた実測値です。</div>
     </div>
-    <div class="str-grid">
-      <div class="str reveal">
-        <span class="no">01</span>
-        <div class="badge" style="background:linear-gradient(135deg,#ffe1d2,var(--peach))">⚡</div>
-        <h3>効率化に、とことん</h3>
-        <p>面倒な定型業務を、AIと独自ツールでシンプルに。AI管理ツールでは経費を7割削減した実績も。「やらなくていい仕事」を減らします。</p>
-      </div>
-      <div class="str reveal" style="transition-delay:.12s">
-        <div class="badge" style="background:linear-gradient(135deg,#fff0d6,var(--gold))">🛡️</div>
-        <span class="no">02</span>
-        <h3>実績ある法人の安心感</h3>
-        <p>銀行とのお取引もある法人として、契約・運用・情報管理まで誠実に。YouTubeでは銀の盾を獲得するなど、結果でも信頼にお応えします。</p>
-      </div>
-      <div class="str reveal" style="transition-delay:.24s">
-        <div class="badge" style="background:linear-gradient(135deg,#e3f0eb,#bfe0d6)">💬</div>
-        <span class="no">03</span>
-        <h3>とことん、寄り添う</h3>
-        <p>「難しそう」「高そう」を払拭。専門用語を並べず、いまのお悩みからやさしくご提案。小さな一歩から、ずっと一緒に伴走します。</p>
-      </div>
+    <div class="reveal" style="transition-delay:.1s">
+      <div class="idx">実績 — 02</div>
+      <div class="num">3,000<small>万</small></div>
+      <div class="cap"><b>月間再生数。</b>担当者に頼らない「仕組みだけ」で運用するチャンネルの実績です。</div>
+    </div>
+    <div class="reveal" style="transition-delay:.2s">
+      <div class="idx">実績 — 03</div>
+      <div class="num">銀の盾</div>
+      <div class="cap"><b>YouTube公式の受賞。</b>登録者10万人。仕組みの力を、数字で証明しました。</div>
     </div>
   </div>
-</section>
+</div>
 
 <!-- ===== SERVICES ===== -->
-<section class="sec services" id="services">
-  <div class="wrap">
-    <div class="sec-head reveal">
-      <span class="kicker">Services</span>
-      <h2 class="title" style="margin-top:14px">発信から効率化まで、<br>まるごとお手伝い。</h2>
-      <p class="lead">主軸は「ツール開発・ワークフロー簡易化」。集客や動画も含め、企業の“面倒”をまるごとお引き受けします。</p>
+<section class="sec" id="services">
+  <div class="frame">
+    <div class="svc-head reveal">
+      <div>
+        <div class="kicker">Services</div>
+        <h2 class="title">派手な提案より、<br><em>止まらない仕組み</em>を。</h2>
+      </div>
+      <p class="lead">主軸は、業務効率化ツールの開発とワークフローの設計。集客や動画制作も、すべて「仕組みで回す」という同じ考え方でお引き受けします。</p>
     </div>
-    <div class="svc-grid">
-      <div class="svc big reveal">
-        <span class="tag tag-main">MAIN ・ 主力</span>
-        <div class="ic" style="background:linear-gradient(135deg,#ffe1d2,var(--peach))">⚙️</div>
-        <h3>業務効率化ツール開発</h3>
-        <p>「定型業務に時間が奪われている」を解決。あなたの業務に合わせた独自ツールを開発し、AI・自動化でムダを削ります。AI管理ツールでは経費7割削減も実現。導入から定着まで伴走します。</p>
-        <a class="more" href="#">詳しく見る <span class="arr">→</span></a>
+    <div class="svc-list">
+      <div class="svc reveal">
+        <span class="no"><b>01</b></span>
+        <span class="svc-name">業務効率化ツール開発</span>
+        <span class="desc">毎日の決まった作業を、御社専用の道具に置き換えます。<b>経費7割削減</b>を実現したAI管理ツールなど、導入から定着まで伴走します。</span>
+        <span class="tag main">MAIN</span>
       </div>
-      <div class="svc big reveal" style="transition-delay:.1s">
-        <span class="tag tag-main">MAIN ・ 主力</span>
-        <div class="ic" style="background:linear-gradient(135deg,#fff0d6,var(--gold))">🔄</div>
-        <h3>業務効率化・運用サポート</h3>
-        <p>「日々の運用が回らない・属人化している」を解決。業務を仕組み化し、AIを活用した効率運用で、止まらない・ラクな体制をつくります。担当が変わっても続く運営へ。</p>
-        <a class="more" href="#">詳しく見る <span class="arr">→</span></a>
+      <div class="svc reveal">
+        <span class="no"><b>02</b></span>
+        <span class="svc-name">ワークフロー設計・運用サポート</span>
+        <span class="desc">「あの人がいないと回らない」仕事の流れを整理し、<b>誰が担当しても回る形</b>に。日々の運用も仕組みごとお預かりできます。</span>
+        <span class="tag main">MAIN</span>
       </div>
-      <div class="svc sm reveal">
-        <span class="tag tag-focus">FOCUS ・ 注力</span>
-        <div class="ic" style="background:linear-gradient(135deg,#e3f0eb,#bfe0d6)">📲</div>
-        <h3>SNS集客サポート</h3>
-        <p>Instagramを中心に、集客導線の設計と運用を支援。データ×AIで「問い合わせにつながる」発信へ。</p>
-        <a class="more" href="#">詳しく見る <span class="arr">→</span></a>
+      <div class="svc reveal">
+        <span class="no"><b>03</b></span>
+        <span class="svc-name">SNS集客の仕組み化</span>
+        <span class="desc">Instagramを中心に、感覚ではなくデータで発信を設計。<b>問い合わせにつながる導線</b>を作り、運用まで支援します。</span>
+        <span class="tag">FOCUS</span>
       </div>
-      <div class="svc sm reveal" style="transition-delay:.1s">
-        <span class="tag tag-base">VIDEO</span>
-        <div class="ic" style="background:linear-gradient(135deg,#ffe6d4,#ffcaad)">🎬</div>
-        <h3>動画編集</h3>
-        <p>AI支援編集で、高品質な動画をスピーディに・均質に。量と質、どちらも妥協しません。</p>
-        <a class="more" href="#">詳しく見る <span class="arr">→</span></a>
+      <div class="svc reveal">
+        <span class="no"><b>04</b></span>
+        <span class="svc-name">動画制作・編集</span>
+        <span class="desc">制作工程そのものを仕組み化。AIの支援で、<b>質を落とさずスピーディに</b>、安定した本数を作り続けられる体制を整えます。</span>
+        <span class="tag">VIDEO</span>
       </div>
-      <div class="svc sm reveal" style="transition-delay:.2s">
-        <span class="tag tag-base">YOUTUBE</span>
-        <div class="ic" style="background:linear-gradient(135deg,#ffded2,var(--coral))">▶️</div>
-        <h3>非属人制YouTube運営</h3>
-        <p>人に依存しない運営体制で、チャンネルを継続成長。<b>銀の盾獲得・月間3,000万再生</b>の実績で支えます。</p>
-        <a class="more" href="#">詳しく見る <span class="arr">→</span></a>
+      <div class="svc reveal">
+        <span class="no"><b>05</b></span>
+        <span class="svc-name">YouTubeチャンネル運営</span>
+        <span class="desc">担当者に依存しない運営体制で、<b>銀の盾（登録者10万人）を受賞</b>。企画・制作・分析まで、まるごと運営を代行します。</span>
+        <span class="tag">YOUTUBE</span>
       </div>
     </div>
   </div>
@@ -456,170 +473,163 @@
 
 <!-- ===== AI BAND ===== -->
 <section id="ai">
-  <div class="ai">
-    <div class="ai-inner">
+  <div class="ai-band">
+    <div class="ai-inner ai-grid">
       <div>
-        <span class="kicker">AI at the core</span>
-        <h2>AIを“どこで・どう使うか”まで、<br>やさしく設計します。</h2>
-        <p>「AIを使っています」で終わらせません。企画から分析まで、各工程のどこにAIを組み込めば成果が出るかを設計し、品質は人がしっかり担保。新しいやり方を、地に足をつけて、わかりやすくお届けします。</p>
-        <div style="margin-top:30px"><a href="#contact" class="btn btn-primary" style="background:var(--peach);color:var(--ink);box-shadow:0 10px 26px rgba(255,198,166,.4)">AI活用の詳細を見る <span class="arr">→</span></a></div>
+        <div class="kicker">Our promise</div>
+        <h2>AIは、道具です。<br>主役は、<em>御社の仕事</em>。</h2>
+        <p class="lead" style="margin-top:20px">「AIを使っています」で終わらせません。どの工程にAIを入れ、どこで必ず人が確認するか。<b>成果と安心の両方</b>から逆算して設計するのが、私たちの仕事です。</p>
       </div>
-      <div class="ai-flow">
-        <div class="flow-node"><span class="step">1</span><span class="lbl">企画・リサーチ</span><span class="desc">AIで素早く・多角的に</span></div>
-        <div class="flow-node hl"><span class="step">2</span><span class="lbl">ツール・自動化</span><span class="desc">面倒な作業を肩代わり</span></div>
-        <div class="flow-node"><span class="step">3</span><span class="lbl">制作・編集</span><span class="desc">AI支援で速く均質に</span></div>
-        <div class="flow-node"><span class="step">4</span><span class="lbl">分析・改善</span><span class="desc">データで次の一手を</span></div>
-        <div class="flow-node"><span class="step">5</span><span class="lbl">品質チェック</span><span class="desc">最後は人の目で担保</span></div>
+      <div class="promise">
+        <div><span class="n">01</span><h3>まず、現場の話を聞く</h3><p>技術の話から始めません。いまの仕事の流れと、いちばん面倒な部分から伺います。</p></div>
+        <div><span class="n">02</span><h3>効果が出る所だけAIを使う</h3><p>流行りではなく費用対効果で判断。AIが不要なら、使わない提案をします。</p></div>
+        <div><span class="n">03</span><h3>迷ったら、人に回す</h3><p>AIが判断に迷うものは自動で担当者へ。勝手に進めない設計にします。</p></div>
+        <div><span class="n">04</span><h3>最後は、人が確認する</h3><p>お金や信用に関わる判断は、必ず人の承認を挟みます。</p></div>
+        <div><span class="n">05</span><h3>数字で報告する</h3><p>削減できた時間と費用を、導入後も定期的にご報告します。</p></div>
       </div>
     </div>
   </div>
 </section>
 
-<!-- ===== WORKS ===== -->
-<section class="sec" id="works">
-  <div class="wrap">
-    <div class="sec-head reveal">
-      <span class="kicker">Works</span>
-      <h2 class="title" style="margin-top:14px">成果で語る、実績</h2>
-      <p class="lead">課題 → 施策 → 結果。数字でわかる変化を、いくつかご紹介します。</p>
+<!-- ===== CASES ===== -->
+<section class="sec" id="cases">
+  <div class="frame">
+    <div class="reveal">
+      <div class="kicker">Cases</div>
+      <h2 class="title">結果は、<em>数字</em>でご覧ください。</h2>
+      <p class="lead">課題、施策、結果。実際の導入で出た変化をご紹介します。</p>
     </div>
-    <div class="work-grid">
-      <div class="work reveal">
-        <div class="cap c1"><span class="badge">業務効率化</span><span class="emoji">⚙️</span></div>
-        <div class="body"><h3>AI管理ツールで経費を大幅圧縮</h3><p>手作業の管理業務をAIツール化し、運用コストを抜本的に削減。</p><div class="res"><span class="big">-70%</span><span class="t">経費を削減</span></div></div>
+    <div class="case-grid">
+      <div class="case reveal">
+        <span class="tag">業務効率化</span>
+        <h3>手作業の管理業務を、AIツールへ</h3>
+        <p>毎日数時間かかっていた管理業務を自社開発のAIツールに置き換え。運用コストを抜本的に削減しました。</p>
+        <div class="res"><span class="big">−70%</span><span class="t">運用経費<br>を削減</span></div>
       </div>
-      <div class="work reveal" style="transition-delay:.1s">
-        <div class="cap c2"><span class="badge">YouTube・ショート</span><span class="emoji">🎬</span></div>
-        <div class="body"><h3>非属人制チャンネルで銀の盾を獲得</h3><p>仕組み化された運営で、担当に依存せず継続的に大きく伸長。</p><div class="res"><span class="big">3,000万</span><span class="t">再生 / 月（ショート）</span></div></div>
+      <div class="case reveal" style="transition-delay:.1s">
+        <span class="tag">YouTube運営</span>
+        <h3>担当者に頼らない運営で、銀の盾</h3>
+        <p>企画・制作・分析を仕組み化し、特定の担当者に依存しない体制へ。登録者10万人を達成しました。</p>
+        <div class="res"><span class="big">3,000万</span><span class="t">再生 / 月<br>（ショート動画）</span></div>
       </div>
-      <div class="work reveal" style="transition-delay:.2s">
-        <div class="cap c3"><span class="badge">YouTube・長尺</span><span class="emoji">📺</span></div>
-        <div class="body"><h3>長尺動画でも安定した再生数</h3><p>企画・台本・分析をAIで標準化し、長尺でも高い再生を実現。</p><div class="res"><span class="big">500万</span><span class="t">再生 / 月（長尺）</span></div></div>
+      <div class="case reveal" style="transition-delay:.2s">
+        <span class="tag">YouTube運営</span>
+        <h3>長尺動画も、仕組みで安定成長</h3>
+        <p>企画と台本づくりの工程を標準化。長尺動画でも、属人性なく高い再生数を維持しています。</p>
+        <div class="res"><span class="big">500万</span><span class="t">再生 / 月<br>（長尺動画）</span></div>
       </div>
     </div>
   </div>
 </section>
 
 <!-- ===== FLOW ===== -->
-<section class="sec steps">
-  <div class="wrap">
-    <div class="sec-head reveal">
-      <span class="kicker">How it works</span>
-      <h2 class="title" style="margin-top:14px">ご相談から導入までの流れ</h2>
+<section class="sec flow-wrap">
+  <div class="frame">
+    <div class="reveal">
+      <div class="kicker">Process</div>
+      <h2 class="title">ご相談から導入まで</h2>
+      <p class="lead">「何から相談すればいいかわからない」——多くのお客様が、その段階から始めています。</p>
     </div>
-    <div class="step-grid">
-      <div class="step-c reveal"><span class="ph">Contact</span><h3>お問い合わせ</h3><p>フォームまたはお電話で。「何を相談していいかわからない」段階でも大丈夫です。</p></div>
-      <div class="step-c reveal" style="transition-delay:.1s"><span class="ph">Hearing</span><h3>課題のヒアリング</h3><p>現状の業務やお悩みをお聞きし、改善できるポイントを一緒に整理します。</p></div>
-      <div class="step-c reveal" style="transition-delay:.2s"><span class="ph">Proposal</span><h3>ご提案・お見積り</h3><p>最適なサービスと進め方、費用感をわかりやすくご提案します。</p></div>
-      <div class="step-c reveal" style="transition-delay:.3s"><span class="ph">Start</span><h3>導入・運用支援</h3><p>導入して終わりではなく、定着・成果まで伴走してサポートします。</p></div>
+    <div class="flow-grid">
+      <div class="flow-step reveal"><div class="n">1</div><h3>お問い合わせ</h3><p>フォームからご連絡ください。漠然としたお悩みのままで大丈夫です。</p></div>
+      <div class="flow-step reveal" style="transition-delay:.08s"><div class="n">2</div><h3>現場のヒアリング</h3><p>いまの仕事の流れを伺い、仕組み化できる部分を一緒に探します。</p></div>
+      <div class="flow-step reveal" style="transition-delay:.16s"><div class="n">3</div><h3>ご提案・お見積り</h3><p>費用と、削減できる時間・経費の見込みを、数字でご提示します。</p></div>
+      <div class="flow-step reveal" style="transition-delay:.24s"><div class="n">4</div><h3>導入・伴走</h3><p>作って終わりにしません。定着して成果が出るまで、隣で支えます。</p></div>
     </div>
   </div>
 </section>
 
 <!-- ===== COMPANY ===== -->
 <section class="sec" id="company">
-  <div class="wrap company-grid">
-    <div class="co-info reveal">
-      <span class="kicker">Company</span>
-      <h2 class="title" style="margin:14px 0 16px">確かな実体が、<br>安心の土台です。</h2>
-      <p class="lead">横浜を拠点に、業務効率化とAI活用で事業者を支える法人です。銀行とのお取引もあり、契約・運用も誠実に対応します。</p>
-      <div style="margin-top:28px"><a href="#" class="btn btn-ghost">会社概要を詳しく <span class="arr">→</span></a></div>
+  <div class="frame co-grid">
+    <div class="reveal">
+      <div class="kicker">Company</div>
+      <h2 class="title">確かな実体が、<br>安心の土台です。</h2>
+      <p class="lead">横浜を拠点に9年目。銀行とのお取引もある法人として、契約・情報管理・運用まで誠実に対応します。</p>
     </div>
-    <div class="co-card reveal" style="transition-delay:.12s">
-      <div class="top">
-        <span class="mark"><span class="c1"></span><span class="c2"></span></span>
-        <div><h3>株式会社Hi-Fi</h3><small>HIGH FIDELITY INC.</small></div>
-      </div>
-      <div class="co-table">
-        <div class="row"><span class="k">代表者</span><span class="v"><b>波江野 亮介</b></span></div>
-        <div class="row"><span class="k">設立</span><span class="v">2017年（平成29年）10月5日</span></div>
-        <div class="row"><span class="k">資本金</span><span class="v">100万円</span></div>
-        <div class="row"><span class="k">所在地</span><span class="v">〒220-0004<br>神奈川県横浜市西区北幸2丁目10番地28 むつみビル3F</span></div>
-        <div class="row"><span class="k">事業内容</span><span class="v">業務効率化ツール開発／運用サポート／SNS集客／動画編集／非属人制YouTube運営</span></div>
-        <div class="row"><span class="k">連絡先</span><span class="v" style="color:var(--ink-soft)">※ 確定後に記載（TEL／メール）</span></div>
-      </div>
+    <div class="co-table reveal" style="transition-delay:.1s">
+      <div class="row"><span class="k">Name</span><span class="v"><b>株式会社Hi-Fi</b>（HIGH FIDELITY INC.）</span></div>
+      <div class="row"><span class="k">CEO</span><span class="v">波江野 亮介</span></div>
+      <div class="row"><span class="k">Founded</span><span class="v">2017年（平成29年）10月5日</span></div>
+      <div class="row"><span class="k">Capital</span><span class="v">100万円</span></div>
+      <div class="row"><span class="k">Office</span><span class="v">〒220-0004<br>神奈川県横浜市西区北幸2丁目10番地28 むつみビル3F</span></div>
+      <div class="row"><span class="k">Business</span><span class="v">業務効率化ツール開発／ワークフロー設計・運用サポート／SNS集客の仕組み化／動画制作・編集／YouTubeチャンネル運営</span></div>
     </div>
   </div>
 </section>
 
-<!-- ===== FINAL CTA ===== -->
+<!-- ===== CTA ===== -->
 <section class="cta" id="contact">
-  <div class="wrap">
-    <div class="cta-box reveal">
-      <h2>その“面倒”、<br>Hi-Fiにまかせてみませんか。</h2>
-      <p>ご相談・お見積りは無料です。いまのお悩みから、お気軽にどうぞ。</p>
-      <div class="hero-actions" style="justify-content:center">
-        <a href="#" class="btn btn-primary">まずは無料で相談する <span class="arr">→</span></a>
-        <a href="#" class="btn btn-ghost">資料をダウンロード</a>
+  <div class="frame">
+    <div class="reveal">
+      <div class="kicker">Contact</div>
+      <h2>まずは、いちばん<em>面倒な仕事</em>の<br>話から聞かせてください。</h2>
+      <p>ご相談・お見積りは無料です。仕組み化できるかどうかの見立てだけでも、お気軽にどうぞ。</p>
+      <div class="cta-actions">
+        <a href="#" class="btn-fill">無料で相談する →</a>
+        <a href="#company" class="btn-under">会社概要を見る</a>
       </div>
     </div>
   </div>
 </section>
 
 <!-- ===== FOOTER ===== -->
-<footer id="news">
-  <div class="wrap">
-    <div class="foot-grid">
+<footer>
+  <div class="frame">
+    <div class="foot">
       <div>
-        <div class="foot-logo"><span class="mark"><span class="c1"></span><span class="c2"></span></span>Hi-Fi</div>
-        <p class="desc">High Fidelity ＝ 高品質・忠実・クリア。AIと仕組みで、あなたのビジネスにやさしく寄り添います。</p>
+        <div class="logo">Hi-Fi<sup>®</sup></div>
+        <address class="addr">〒220-0004 神奈川県横浜市西区北幸2丁目10番地28 むつみビル3F</address>
       </div>
-      <div class="foot-col">
-        <h4>サービス</h4>
-        <ul>
-          <li><a href="#services">業務効率化ツール開発</a></li>
-          <li><a href="#services">運用サポート</a></li>
-          <li><a href="#services">SNS集客サポート</a></li>
-          <li><a href="#services">動画編集</a></li>
-          <li><a href="#services">非属人制YouTube運営</a></li>
-        </ul>
-      </div>
-      <div class="foot-col">
-        <h4>会社情報</h4>
-        <ul>
-          <li><a href="#company">会社概要</a></li>
-          <li><a href="#ai">AIへの取り組み</a></li>
-          <li><a href="#works">実績</a></li>
-          <li><a href="#news">お知らせ</a></li>
-          <li><a href="#contact">お問い合わせ</a></li>
-        </ul>
-      </div>
-      <div class="foot-col">
-        <h4>株式会社Hi-Fi</h4>
-        <address class="foot-info">
-          〒220-0004<br>
-          神奈川県横浜市西区北幸<br>2丁目10番地28 むつみビル3F<br>
-          代表：<b>波江野 亮介</b><br>
-          設立：2017年10月　資本金：100万円
-        </address>
-      </div>
+      <ul>
+        <li><a href="#services">できること</a></li>
+        <li><a href="#cases">導入事例</a></li>
+        <li><a href="#ai">AIとの向き合い方</a></li>
+        <li><a href="#company">会社概要</a></li>
+        <li><a href="#contact">お問い合わせ</a></li>
+      </ul>
     </div>
-    <div class="copy">
-      <span class="l">© 2026 Hi-Fi Inc. All rights reserved.</span>
-      <span style="display:flex;gap:18px"><a href="#" style="color:inherit">プライバシーポリシー</a><a href="#" style="color:inherit">特定商取引法に基づく表記</a></span>
+    <div class="foot-copy">
+      <span>© 2026 High Fidelity Inc. All rights reserved.</span>
+      <span>Systems &amp; AI Engineering — Yokohama</span>
     </div>
   </div>
 </footer>
 
 <script>
+  // sticky header shadow
   const hdr=document.getElementById('hdr');
-  addEventListener('scroll',()=>hdr.classList.toggle('scrolled',scrollY>20));
+  addEventListener('scroll',()=>hdr.classList.toggle('scrolled',scrollY>10));
+
+  // mobile menu
+  const mMenu=document.getElementById('mMenu');
+  document.getElementById('menuBtn').addEventListener('click',()=>mMenu.classList.add('open'));
+  document.getElementById('menuClose').addEventListener('click',()=>mMenu.classList.remove('open'));
+  mMenu.querySelectorAll('a').forEach(a=>a.addEventListener('click',()=>mMenu.classList.remove('open')));
 
   // reveal on scroll
-  const io=new IntersectionObserver((es)=>{es.forEach(e=>{if(e.isIntersecting){e.target.classList.add('in');io.unobserve(e.target);}})},{threshold:.15});
+  const io=new IntersectionObserver(es=>{es.forEach(e=>{if(e.isIntersecting){e.target.classList.add('in');io.unobserve(e.target);}})},{threshold:.12});
   document.querySelectorAll('.reveal').forEach(el=>io.observe(el));
 
-  // count up
-  const fmt=n=>n.toLocaleString('ja-JP');
-  const countIO=new IntersectionObserver((es)=>{es.forEach(e=>{
-    if(!e.isIntersecting)return; countIO.unobserve(e.target);
-    const el=e.target,to=+el.dataset.to,suffix=el.dataset.suffix||'',dur=1500,t0=performance.now();
-    (function tick(now){let p=Math.min((now-t0)/dur,1);p=1-Math.pow(1-p,3);
-      const val=Math.round(to*p);
-      el.innerHTML=fmt(val)+(suffix?'<span class="u">'+suffix+'</span>':'');
-      if(p<1)requestAnimationFrame(tick);})(t0);
-  })},{threshold:.6});
-  document.querySelectorAll('.num[data-to]').forEach(el=>countIO.observe(el));
+  // demo panel: steps advance automatically in a loop
+  const steps=[...document.querySelectorAll('#demo .stp')];
+  const labels={wait:'待機中',run:'実行中',done:'完了'};
+  const setState=(el,s)=>{el.dataset.state=s;el.querySelector('.st').textContent=labels[s];};
+  let idx=-1;
+  function tick(){
+    if(idx>=0&&idx<steps.length)setState(steps[idx],'done');
+    idx++;
+    if(idx<steps.length){
+      setState(steps[idx],'run');
+      setTimeout(tick,1700);
+    }else{
+      // all done — pause, then restart
+      setTimeout(()=>{steps.forEach(s=>setState(s,'wait'));idx=-1;setTimeout(tick,900);},3600);
+    }
+  }
+  // start once the demo is visible
+  const demoIO=new IntersectionObserver(es=>{es.forEach(e=>{if(e.isIntersecting){demoIO.disconnect();setTimeout(tick,800);}})},{threshold:.3});
+  demoIO.observe(document.getElementById('demo'));
 </script>
 </body>
 </html>
