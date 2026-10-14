@@ -1,0 +1,214 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://local.ai-dev-tool/schemas/e2e-evidence.schema.json",
+  "title": "AI Harness E2E Evidence",
+  "type": "object",
+  "$defs": {
+    "countArtifact": {
+      "type": "object",
+      "required": ["path", "sha256", "json_pointer", "items"],
+      "properties": {
+        "path": { "type": "string", "minLength": 1, "pattern": "^(?!/)" },
+        "sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+        "json_pointer": { "type": "string", "pattern": "^/" },
+        "item_key": { "type": "string", "minLength": 1 },
+        "items": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": { "type": "string", "minLength": 1 }
+        }
+      },
+      "additionalProperties": false
+    },
+    "artifactElementCounts": {
+      "type": "object",
+      "required": ["expected_count", "actual_count", "source", "output_artifact"],
+      "properties": {
+        "expected_count": { "type": "integer", "minimum": 1 },
+        "actual_count": { "type": "integer", "minimum": 1 },
+        "source": { "$ref": "#/$defs/countArtifact" },
+        "output_artifact": { "$ref": "#/$defs/countArtifact" }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": true,
+  "required": ["schemaVersion", "taskId", "taskFingerprint", "repo", "branch", "executedAt", "status"],
+  "properties": {
+    "schemaVersion": { "const": 1 },
+    "taskId": { "type": "string", "minLength": 1 },
+    "taskFingerprint": { "type": "string", "minLength": 1 },
+    "repo": { "type": "string", "minLength": 1 },
+    "branch": { "type": "string", "minLength": 1 },
+    "gitHead": { "type": "string", "minLength": 1 },
+    "gitStatusHash": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+    "worktreeHash": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+    "testRun": { "type": "string", "minLength": 1, "pattern": "^(?!/)" },
+    "e2eKind": { "enum": ["browser", "cli", "api", "batch", "library", "docs", "other"] },
+    "command": { "type": "string", "minLength": 1 },
+    "exitCode": { "const": 0 },
+    "summary": { "type": "string", "minLength": 1 },
+    "url": { "type": "string", "format": "uri", "pattern": "^https?://" },
+    "executedAt": { "type": "string", "format": "date-time" },
+    "browser": {
+      "type": "object",
+      "required": ["name", "version"],
+      "properties": {
+        "name": { "type": "string", "minLength": 1 },
+        "version": { "type": "string", "minLength": 1 }
+      }
+    },
+    "actions": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["name", "passed"],
+        "properties": { "name": { "type": "string", "minLength": 1 }, "passed": { "const": true } }
+      }
+    },
+    "screenReflection": {
+      "type": "object",
+      "required": ["passed", "details"],
+      "properties": { "passed": { "const": true }, "details": { "type": "string", "minLength": 1 } }
+    },
+    "reload": {
+      "type": "object",
+      "required": ["passed", "details"],
+      "properties": { "passed": { "const": true }, "details": { "type": "string", "minLength": 1 } }
+    },
+    "consoleErrorCount": { "const": 0 },
+    "failedNetworkRequestCount": { "const": 0 },
+    "requiredElements": { "type": "array", "minItems": 1, "items": { "type": "string", "minLength": 1 } },
+    "checkedElements": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["kind", "label", "visible"],
+        "properties": {
+          "kind": { "enum": ["image", "card", "button", "form", "text", "other"] },
+          "label": { "type": "string", "minLength": 1 },
+          "visible": { "const": true }
+        }
+      }
+    },
+    "element_counts": {
+      "type": "object",
+      "required": ["expected_count", "actual_count"],
+      "properties": {
+        "expected_count": { "type": "integer", "minimum": 0 },
+        "actual_count": { "type": "integer", "minimum": 0 },
+        "source": { "$ref": "#/$defs/countArtifact" },
+        "output_artifact": { "$ref": "#/$defs/countArtifact" }
+      },
+      "additionalProperties": false
+    },
+    "regression_check": {
+      "type": "object",
+      "required": ["baseline", "deploy_gate", "items"],
+      "properties": {
+        "baseline": {
+          "type": ["string", "null"],
+          "minLength": 1,
+          "description": "参照するdeploy-gate記録がinitial_service=trueの初回デプロイの場合のみnull"
+        },
+        "deploy_gate": {
+          "type": "object",
+          "required": ["path", "sha256", "service", "latest_ready_revision_name", "image_digest"],
+          "properties": {
+            "path": { "type": "string", "minLength": 1, "pattern": "^\\.ai/deploy-gates/" },
+            "sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+            "service": { "type": "string", "minLength": 1 },
+            "latest_ready_revision_name": {
+              "type": ["string", "null"],
+              "minLength": 1,
+              "description": "参照するdeploy-gate記録がinitial_service=trueの初回デプロイの場合のみnull"
+            },
+            "image_digest": {
+              "type": ["string", "null"],
+              "minLength": 1,
+              "description": "参照するdeploy-gate記録がinitial_service=trueの初回デプロイの場合のみnull"
+            }
+          },
+          "additionalProperties": false
+        },
+        "items": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "required": ["name", "result"],
+            "properties": {
+              "name": { "type": "string", "minLength": 1 },
+              "result": { "enum": ["equivalent", "degraded", "unchecked"] }
+            },
+            "additionalProperties": false
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "screenshots": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["path"],
+        "properties": { "path": { "type": "string", "minLength": 1 }, "description": { "type": "string" } }
+      }
+    },
+    "status": { "enum": ["passed", "failed", "blocked"] },
+    "blocker": {
+      "type": "object",
+      "required": ["reason", "requiredEnvironment"],
+      "properties": {
+        "reason": { "type": "string", "minLength": 1 },
+        "requiredEnvironment": { "type": "array", "minItems": 1, "items": { "type": "string", "minLength": 1 } }
+      }
+    },
+    "failure": {
+      "type": "object",
+      "required": ["reason"],
+      "properties": { "reason": { "type": "string", "minLength": 1 } }
+    }
+  },
+  "allOf": [
+    {
+      "if": { "properties": { "status": { "const": "passed" } } },
+      "then": {
+        "required": ["gitHead", "gitStatusHash", "worktreeHash"],
+        "oneOf": [
+          {
+            "properties": { "e2eKind": { "const": "browser" } },
+            "required": ["e2eKind", "url", "browser", "actions", "screenReflection", "reload", "consoleErrorCount", "failedNetworkRequestCount", "requiredElements", "checkedElements", "element_counts", "screenshots"]
+          },
+          {
+            "properties": { "e2eKind": { "enum": ["cli", "api", "batch", "library", "docs", "other"] } },
+            "required": ["e2eKind", "command", "exitCode", "summary", "element_counts"],
+            "allOf": [
+              {
+                "properties": {
+                  "element_counts": { "$ref": "#/$defs/artifactElementCounts" }
+                }
+              },
+              {
+                "if": { "properties": { "e2eKind": { "not": { "const": "docs" } } } },
+                "then": { "required": ["testRun"] }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "if": { "properties": { "status": { "const": "blocked" } } },
+      "then": { "required": ["blocker"] }
+    },
+    {
+      "if": { "properties": { "status": { "const": "failed" } } },
+      "then": { "required": ["failure"] }
+    }
+  ]
+}

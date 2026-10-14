@@ -1,0 +1,8 @@
+backups/
+review-queue/
+user-instructions/
+# R2 F2-5: 実行時に作られるレビュー作業ファイル。追跡すると証跡と commit を乱す。
+primary-review-*/
+deepseek-review-budget.json
+deepseek-review-budget.lock
+model-task-history/

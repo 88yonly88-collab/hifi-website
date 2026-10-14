@@ -1,0 +1,81 @@
+#!/usr/bin/env sh
+# agmsg Manager - ai（AI開発支援コマンドのランチャー）
+#
+# 目的:
+#   package.json が無いリポジトリ（Python 等）でも npm run ai:* と同じ操作ができるようにする。
+#   `ai <name> [args...]` を `node scripts/ai-<name>.mjs [args...]` へそのまま委譲する。
+#
+# 使い方:
+#   bash scripts/ai help
+#   bash scripts/ai review-flow --yes
+#   bash scripts/ai run npm test
+#
+# 対応表:
+#   npm run ai:help                        → bash scripts/ai help
+#   npm run ai:review-reply -- --message x → bash scripts/ai review-reply --message x
+#   （npm 固有の `--` は standalone では不要）
+#
+# 制約:
+#   - 引数はそのまま透過する（スペース・日本語を含む引数も壊さない）。
+#   - 存在しないコマンドは利用可能な一覧を表示して非0終了する。
+#   - 終了コードは委譲先の node スクリプトのものをそのまま返す。
+set -eu
+
+script_dir=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
+
+usage() {
+  echo "使い方: bash scripts/ai <コマンド> [引数...]"
+  echo ""
+  echo "利用できるコマンド:"
+  found=0
+  for entry in "$script_dir"/ai-*.mjs; do
+    [ -f "$entry" ] || continue
+    base=${entry##*/}
+    base=${base#ai-}
+    base=${base%.mjs}
+    case "$base" in
+      *-lib) continue ;;
+    esac
+    echo "  $base"
+    found=1
+  done
+  [ "$found" -eq 1 ] || echo "  (scripts/ai-*.mjs が見つかりません)"
+}
+
+if [ "$#" -eq 0 ]; then
+  usage >&2
+  exit 1
+fi
+
+name=$1
+shift
+
+case "$name" in
+  -h | --help)
+    usage
+    exit 0
+    ;;
+esac
+
+# パス区切り等を含む名前は受け付けない（scripts/ 外のファイルを実行させない）
+case "$name" in
+  *[!a-z0-9-]* | -* | '')
+    echo "✗ 不正なコマンド名です: $name" >&2
+    usage >&2
+    exit 1
+    ;;
+  *-lib)
+    echo "✗ 内部ライブラリは直接実行できません: $name" >&2
+    usage >&2
+    exit 1
+    ;;
+esac
+
+entry="$script_dir/ai-$name.mjs"
+if [ ! -f "$entry" ]; then
+  echo "✗ 不明なコマンドです: $name" >&2
+  usage >&2
+  exit 1
+fi
+
+exec node "$entry" "$@"

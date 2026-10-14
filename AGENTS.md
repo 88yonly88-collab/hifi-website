@@ -225,3 +225,10 @@ docs/user_original_requests/YYYY-MM-DD-request-title.md
 - 起動コマンド: ブラウザで index.html を直接開く（または python3 -m http.server）
 - 検証コマンド: HTMLの表示確認（デスクトップ幅・モバイル幅の両方）
 - 実環境確認の手段・URL: ローカルで index.html を開き、レイアウト・リンク・画像を確認する
+
+## 起動時の受信箱確認（必須）
+
+作業を始める前に、このレーン宛の指示書を確認する。
+`node /home/dev/projects/ai-dev-tool/bin/org.mjs inbox --repo /home/dev/projects/hifi-website`
+未処理は `.ai/org-inbox/<id>.json` の `instructionPath` を開いて従い、終わったら `verify`→`collect` で戻す。
+agmsg宛の通知は30秒ごとに自動でこの受信箱へ取り込まれる。

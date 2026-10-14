@@ -1,0 +1,182 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://local.invalid/ai-harness/approval.schema.json",
+  "title": "AI Harness Approved Implementation Picture",
+  "type": "object",
+  "required": [
+    "schemaVersion", "status", "taskId", "taskFingerprint", "repo", "branch", "revision",
+    "source", "vision", "completionCriteria", "nonGoals", "assumptions", "openQuestions",
+    "concerns", "documentHash", "approval"
+  ],
+  "properties": {
+    "schemaVersion": { "const": 1 },
+    "status": { "enum": ["draft", "approved", "needs_wall"] },
+    "taskId": { "type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$" },
+    "taskFingerprint": { "type": "string", "minLength": 1 },
+    "repo": { "type": "string", "minLength": 1 },
+    "branch": { "type": "string", "minLength": 1 },
+    "revision": { "type": "integer", "minimum": 1 },
+    "source": { "oneOf": [{ "$ref": "#/$defs/simpleSource" }, { "$ref": "#/$defs/specLeaderSource" }] },
+    "vision": { "type": "string", "minLength": 1 },
+    "deliverable_summary": { "type": "string" },
+    "userAgreementQuotes": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["quote", "source"],
+        "properties": {
+          "quote": { "type": "string", "minLength": 1 },
+          "source": { "type": "string", "minLength": 1 }
+        },
+        "additionalProperties": false
+      }
+    },
+    "completionCriteria": { "$ref": "#/$defs/nonEmptyStrings" },
+    "nonGoals": { "$ref": "#/$defs/nonEmptyStrings" },
+    "assumptions": { "$ref": "#/$defs/strings" },
+    "openQuestions": { "$ref": "#/$defs/strings" },
+    "concerns": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["problem", "userImpact", "recommendation"],
+        "properties": {
+          "problem": { "type": "string", "minLength": 1 },
+          "userImpact": { "type": "string", "minLength": 1 },
+          "recommendation": { "type": "string", "minLength": 1 }
+        },
+        "additionalProperties": false
+      }
+    },
+    "implementationPlan": { "$ref": "#/$defs/implementationPlan" },
+    "reviewEscalationDecisions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "taskId", "taskFingerprint", "escalationId", "sizeClass", "maxRounds",
+          "lastRequestId", "findingsDigest", "decision", "decidedBy", "decidedAt", "reason"
+        ],
+        "properties": {
+          "taskId": { "type": "string", "minLength": 1 },
+          "taskFingerprint": { "type": "string", "minLength": 1 },
+          "escalationId": { "type": "string", "minLength": 1 },
+          "sizeClass": { "const": "large" },
+          "maxRounds": { "const": 10 },
+          "lastRequestId": { "type": "string", "minLength": 1 },
+          "findingsDigest": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+          "decision": { "const": "proceed_with_findings" },
+          "decidedBy": { "type": "string", "minLength": 1 },
+          "decidedAt": { "type": "string", "format": "date-time" },
+          "reason": { "type": "string", "minLength": 1 }
+        },
+        "additionalProperties": false
+      }
+    },
+    "documentHash": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "approval": {
+      "oneOf": [
+        { "type": "null" },
+        {
+          "type": "object",
+          "required": ["approvedBy", "approvedAt", "approvedContentHash", "recordHash"],
+          "properties": {
+            "approvedBy": { "type": "string", "minLength": 1 },
+            "approvedAt": { "type": "string", "format": "date-time" },
+            "approvedContentHash": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+            "warnings": { "$ref": "#/$defs/strings" },
+            "recordHash": { "type": "string", "pattern": "^[a-f0-9]{64}$" }
+          },
+          "additionalProperties": false
+        }
+      ]
+    }
+  },
+  "$defs": {
+    "simpleSource": {
+      "type": "object",
+      "required": ["type"],
+      "properties": { "type": { "const": "simple" } },
+      "additionalProperties": false
+    },
+    "specLeaderSource": {
+      "type": "object",
+      "required": ["type", "project", "exportedAt", "handoffDir", "files"],
+      "properties": {
+        "type": { "const": "spec-leader" },
+        "project": { "type": "string", "minLength": 1 },
+        "exportedAt": { "type": "string", "format": "date-time" },
+        "handoffDir": { "type": "string", "minLength": 1 },
+        "files": {
+          "type": "array",
+          "minItems": 4,
+          "items": {
+            "type": "object",
+            "required": ["path", "sha256"],
+            "properties": {
+              "path": { "type": "string", "minLength": 1 },
+              "sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" }
+            },
+            "additionalProperties": false
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "strings": { "type": "array", "items": { "type": "string", "minLength": 1 } },
+    "nonEmptyStrings": { "type": "array", "minItems": 1, "items": { "type": "string", "minLength": 1 } },
+    "implementationPlan": {
+      "type": "object",
+      "required": ["estimatedMinutes", "lanes"],
+      "properties": {
+        "estimatedMinutes": { "type": "number", "minimum": 0 },
+        "lanes": { "type": "integer", "minimum": 1 },
+        "singleLaneReason": { "type": "string", "pattern": "^[^\\r\\n\\u2028\\u2029]*$" }
+      },
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "required": ["estimatedMinutes", "lanes"],
+            "properties": {
+              "estimatedMinutes": { "exclusiveMinimum": 30 },
+              "lanes": { "maximum": 1 }
+            }
+          },
+          "then": {
+            "required": ["singleLaneReason"],
+            "properties": {
+              "singleLaneReason": {
+                "minLength": 1,
+                "pattern": "^(?=.*\\S)[^\\r\\n\\u2028\\u2029]*$"
+              }
+            }
+          }
+        }
+      ]
+    },
+    "agreementCheckedNonGoals": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "string",
+        "minLength": 1,
+        "pattern": "agreementCheck\\s*[:：]\\s*(矛盾なし|例外として合意済み)\\s*[（(]"
+      }
+    }
+  },
+  "allOf": [
+    {
+      "anyOf": [
+        { "required": ["userAgreementQuotes"] },
+        { "properties": { "status": { "enum": ["draft", "approved", "needs_wall"] } }, "required": ["status"] }
+      ]
+    },
+    {
+      "if": { "required": ["userAgreementQuotes"] },
+      "then": { "properties": { "nonGoals": { "$ref": "#/$defs/agreementCheckedNonGoals" } } }
+    }
+  ],
+  "additionalProperties": false
+}

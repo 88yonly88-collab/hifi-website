@@ -1,0 +1,18 @@
+{
+  "schemaVersion": 1,
+  "status": "draft",
+  "taskId": "",
+  "taskFingerprint": "",
+  "repo": "",
+  "branch": "",
+  "revision": 1,
+  "source": { "type": "simple" },
+  "vision": "",
+  "completionCriteria": [],
+  "nonGoals": [],
+  "assumptions": [],
+  "openQuestions": [],
+  "concerns": [],
+  "documentHash": "",
+  "approval": null
+}
