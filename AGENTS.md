@@ -232,3 +232,4 @@ docs/user_original_requests/YYYY-MM-DD-request-title.md
 `node /home/dev/projects/ai-dev-tool/bin/org.mjs inbox --repo /home/dev/projects/hifi-website`
 未処理は `.ai/org-inbox/<id>.json` の `instructionPath` を開いて従い、終わったら `verify`→`collect` で戻す。
 agmsg宛の通知は30秒ごとに自動でこの受信箱へ取り込まれる。
+- 受信箱・検収の記録が古くなったら整理する（台帳は消さない）: `node /home/dev/projects/ai-dev-tool/bin/org.mjs prune --repo /home/dev/projects/hifi-website --days 30`

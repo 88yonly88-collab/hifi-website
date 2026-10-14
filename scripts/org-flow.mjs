@@ -4,7 +4,7 @@
 import { execFileSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import { homedir } from 'node:os';
-import { appendFileSync, existsSync, mkdirSync, readdirSync, readFileSync, statSync, writeFileSync } from 'node:fs';
+import { appendFileSync, existsSync, mkdirSync, readdirSync, readFileSync, statSync, unlinkSync, writeFileSync } from 'node:fs';
 import { basename, dirname, isAbsolute, join, resolve } from 'node:path';
 
 export const INBOX_DIR = ['.ai', 'org-inbox'];
@@ -160,8 +160,8 @@ export function collectResult({ repo, id, ledgerDir, now = new Date().toISOStrin
   if (verified.instructionSha256 !== dispatched.instructionSha256 || verified.id !== id) {
     return { ok: false, errors: ['検収結果と受信箱の指示書sha256が一致しません'] };
   }
-  // 台帳はレーンごとに1件（同じ指示書idを複数レーンへ配るため、idだけでは衝突する）
-  const ledgerPath = join(ledgerDir, `${id}__${basename(target.root)}.json`);
+  // 台帳はレーンごと1ファイル・追記型（同じ指示書を再収集しても過去の検収を消さない）
+  const ledgerPath = join(ledgerDir, `${id}__${basename(target.root)}.jsonl`);
   const entry = {
     schema: 'ai-dev-tool/org-return@1',
     id,
@@ -177,7 +177,8 @@ export function collectResult({ repo, id, ledgerDir, now = new Date().toISOStrin
     verifiedAt: verified.verifiedAt,
     collectedAt: now,
   };
-  writeJson(ledgerPath, entry);
+  mkdirSync(ledgerDir, { recursive: true });
+  appendFileSync(ledgerPath, `${JSON.stringify(entry)}\n`, 'utf8');
   return { ok: true, id, path: ledgerPath, entry };
 }
 
@@ -262,6 +263,46 @@ export async function waitForInstruction({ repo, id, timeoutMs = 300000, interva
     }
     await wait(Math.min(intervalMs, Math.max(0, timeoutMs - (Date.now() - started))));
   }
+}
+
+
+// 通知の既定値: 設定ファイル（.agent-work/org-notify.json）とレーン名から補う。
+// これが無いと --team/--from/--to を渡し忘れた配達で通知が飛ばない（実測の不具合）。
+export function resolveNotifyDefaults({ repo, notify, config, laneName }) {
+  if (notify === false) return false;
+  const fromConfig = config && typeof config === 'object' ? config : {};
+  const lane = laneName || basename(repo);
+  const team = notify?.team || fromConfig.team;
+  const from = notify?.from || fromConfig.from;
+  const to = notify?.to || lane;
+  if (!team || !from) return notify && Object.keys(notify).length ? notify : undefined;
+  return { ...(notify || {}), team, from, to };
+}
+
+export function loadNotifyConfig(path) {
+  if (!path || !existsSync(path)) return null;
+  try { return JSON.parse(readFileSync(path, 'utf8')); } catch { return null; }
+}
+
+// (8) 保持期限を過ぎた受信箱・検収の記録を消す（台帳は消さない）
+export function pruneRecords({ repo, days = 30, now = Date.now() }) {
+  const target = resolveRepo(repo);
+  if (target.error) return { ok: false, errors: [target.error] };
+  const limit = now - days * 24 * 60 * 60 * 1000;
+  const removed = { inbox: 0, outbox: 0 };
+  for (const [dirParts, key] of [[INBOX_DIR, 'inbox'], [OUTBOX_DIR, 'outbox']]) {
+    const dir = join(target.root, ...dirParts);
+    if (!existsSync(dir)) continue;
+    for (const name of readdirSync(dir).filter((n) => n.endsWith('.json'))) {
+      const path = join(dir, name);
+      try {
+        const record = readJson(path);
+        const stamp = Date.parse(record.verifiedAt || record.dispatchedAt || '');
+        if (Number.isFinite(stamp) && stamp < limit) { unlinkSync(path); removed[key] += 1; }
+      } catch { /* 壊れた記録は対象外 */ }
+    }
+  }
+  return { ok: true, repo: target.root, days, removed };
 }
 
 // 受信箱と検収結果を突き合わせて一覧にする（人が未処理を見つけられるようにする）

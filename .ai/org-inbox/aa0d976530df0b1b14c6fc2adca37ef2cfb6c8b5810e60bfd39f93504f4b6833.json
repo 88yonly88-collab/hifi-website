@@ -1,0 +1,21 @@
+{
+  "schema": "ai-dev-tool/org-dispatch@1",
+  "id": "aa0d976530df0b1b14c6fc2adca37ef2cfb6c8b5810e60bfd39f93504f4b6833",
+  "instructionPath": "/home/dev/projects/.agent-work/instructions/org-wake-live-test-20261014.md",
+  "instructionSha256": "aa0d976530df0b1b14c6fc2adca37ef2cfb6c8b5810e60bfd39f93504f4b6833",
+  "dispatchedBy": "dsh-vp",
+  "dispatchedAt": "2026-10-14T06:50:09.562Z",
+  "cost": {
+    "estimateYen": 500,
+    "capYen": 1500
+  },
+  "reviewRounds": 1,
+  "checklistCount": 9,
+  "status": "dispatched",
+  "notified": {
+    "via": "agmsg",
+    "ok": true,
+    "confirmed": true,
+    "detail": "dsh-lanes/dsh-vp->hifi-website"
+  }
+}

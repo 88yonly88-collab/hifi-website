@@ -10,6 +10,17 @@ import { INBOX_DIR } from './org-flow.mjs';
 export const TEAM_DEFAULT = 'dsh-lanes';
 export const INBOX_SH = ['.agents', 'skills', 'agmsg', 'scripts', 'inbox.sh'];
 
+// agmsgのDBは配置が変わり得るため、環境変数→既知の配置の順で解決する。
+export function resolveAgmsgDb() {
+  const candidates = [
+    process.env.AGMSG_DB,
+    join(homedir(), '.agents', 'skills', 'agmsg', 'db', 'messages.db'),
+    join(homedir(), '.agents', 'agmsg', 'agmsg.db'),
+  ].filter(Boolean);
+  for (const p of candidates) if (existsSync(p)) return p;
+  return candidates[1];
+}
+
 const ID_RE = /id=([0-9a-f]{64})/gu;
 const PATH_RE = /path=(\S+)/u;
 
@@ -62,7 +73,7 @@ export function listLanes(root) {
 
 // DB直読モード: 1回のSQLで全レーンの未読をまとめて取り込む（タイマー向けに軽い）
 export function bridgeFromDb({ root, team = TEAM_DEFAULT, dbPath, runSql, now = new Date().toISOString() }) {
-  const db = dbPath || join(homedir(), '.agents', 'skills', 'agmsg', 'db', 'messages.db');
+  const db = dbPath || resolveAgmsgDb();
   const sql = runSql || ((q) => execFileSync('sqlite3', ['-json', db, q], { encoding: 'utf8', timeout: 20000, stdio: ['ignore', 'pipe', 'ignore'] }));
   let rows = [];
   try {
@@ -74,9 +85,10 @@ export function bridgeFromDb({ root, team = TEAM_DEFAULT, dbPath, runSql, now = 
   const lanes = new Set(listLanes(root));
   const bridged = [];
   const consumed = [];
+  const unmatched = [];
   for (const row of rows) {
     const lane = String(row.to_agent || '');
-    if (!lanes.has(lane)) continue;
+    if (!lanes.has(lane)) { unmatched.push({ lane, id: row.id }); continue; }
     consumed.push(row.id);
     const { ids, path } = parseInstructionIds(row.body);
     for (const id of ids) {
@@ -94,7 +106,7 @@ export function bridgeFromDb({ root, team = TEAM_DEFAULT, dbPath, runSql, now = 
   if (consumed.length) {
     try { sql(`update messages set read_at=datetime('now') where id in (${consumed.join(',')});`); } catch { /* 既読化に失敗しても取り込みは成立させる */ }
   }
-  return { ok: true, scanned: rows.length, bridged };
+  return { ok: true, scanned: rows.length, bridged, unmatched };
 }
 
 function parse(argv) {
@@ -120,6 +132,9 @@ if (import.meta.url === `file://${process.argv[1]}`) {
     if (!r.ok) { console.error(`✗ ${r.error}`); process.exit(2); }
     const byLane = r.bridged.map((b) => b.lane);
     console.log(`橋渡し(DB): 未読${r.scanned}件 / 新規取り込み${r.bridged.length}件${byLane.length ? ` — ${byLane.join(' ')}` : ''}`);
+    if (r.unmatched?.length) {
+      console.log(`  ⚠ 対象外レーン宛の未読 ${r.unmatched.length}件（レーン未設定のため取り込まず・既読にもしない）`);
+    }
     process.exit(0);
   }
   const lanes = flags.lane ? [flags.lane] : listLanes(root);
