@@ -5,11 +5,21 @@ import { execFileSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import { homedir } from 'node:os';
 import { appendFileSync, existsSync, mkdirSync, readdirSync, readFileSync, statSync, unlinkSync, writeFileSync } from 'node:fs';
+import { createHash as createHashForApproval } from 'node:crypto';
 import { basename, dirname, isAbsolute, join, resolve } from 'node:path';
 
 export const INBOX_DIR = ['.ai', 'org-inbox'];
 export const OUTBOX_DIR = ['.ai', 'org-outbox'];
 export const CHECKLIST_MIN = 9;
+export const APPROVAL_FILE = ['.ai', 'approval.json'];
+
+// レーンの承認ファイルを束縛する（検収が誰の・どの承認に紐づくかを残す）
+export function approvalBinding(root) {
+  const path = join(root, ...APPROVAL_FILE);
+  if (!existsSync(path)) return { approvalSha256: null, approvalState: 'missing' };
+  const text = readFileSync(path, 'utf8');
+  return { approvalSha256: createHashForApproval('sha256').update(text, 'utf8').digest('hex'), approvalState: 'bound' };
+}
 
 export function sha256Text(text) {
   return createHash('sha256').update(text, 'utf8').digest('hex');
@@ -119,16 +129,18 @@ export function acceptInstruction({ repo, id, acceptedBy = 'lane-supervisor', no
 }
 
 // 統括検収: 指示書shaとチェック項目数に紐づけた結果だけを記録する（未確認の合格を拒否）
-export function verifyInstruction({ repo, id, verdict, note, verifiedBy = 'lane-supervisor', now = new Date().toISOString() }) {
+export function verifyInstruction({ repo, id, verdict, note, verifiedBy, now = new Date().toISOString() }) {
   const errors = [];
   const target = resolveRepo(repo);
   if (target.error) errors.push(target.error);
   if (!['pass', 'fail'].includes(String(verdict || ''))) errors.push('verdict は pass か fail が必要です');
   if (!note || !String(note).trim()) errors.push('note（根拠）が必要です');
+  if (!verifiedBy || !String(verifiedBy).trim()) errors.push('verifiedBy（実行者ID）が必要です');
   const inbox = target.root ? recordPath(target.root, INBOX_DIR, id) : null;
   if (inbox && !existsSync(inbox)) errors.push(`受信箱に指示書がありません: ${id}`);
   if (errors.length) return { ok: false, errors };
   const dispatched = readJson(inbox);
+  const binding = approvalBinding(target.root);
   const record = {
     schema: 'ai-dev-tool/org-verify@1',
     id,
@@ -136,7 +148,8 @@ export function verifyInstruction({ repo, id, verdict, note, verifiedBy = 'lane-
     checklistCount: dispatched.checklistCount,
     verdict,
     note: String(note).trim(),
-    verifiedBy,
+    verifiedBy: String(verifiedBy).trim(),
+    ...binding,
     verifiedAt: now,
   };
   const path = recordPath(target.root, OUTBOX_DIR, id);
@@ -159,6 +172,12 @@ export function collectResult({ repo, id, ledgerDir, now = new Date().toISOStrin
   const dispatched = readJson(inbox);
   if (verified.instructionSha256 !== dispatched.instructionSha256 || verified.id !== id) {
     return { ok: false, errors: ['検収結果と受信箱の指示書sha256が一致しません'] };
+  }
+  if (!verified.verifiedBy || !String(verified.verifiedBy).trim()) {
+    return { ok: false, errors: ['検収に実行者IDがありません（verify --by で記録してください）'] };
+  }
+  if (!verified.approvalSha256) {
+    return { ok: false, errors: [`レーンの承認ファイルが無いため副社長へ戻せません: ${join(target.root, ...APPROVAL_FILE)}`] };
   }
   // 台帳はレーンごと1ファイル・追記型（同じ指示書を再収集しても過去の検収を消さない）
   const ledgerPath = join(ledgerDir, `${id}__${basename(target.root)}.jsonl`);
