@@ -1,0 +1,12 @@
+{
+  "project": "hifi-website",
+  "repo": "hifi-website",
+  "branch": "main",
+  "task": "",
+  "taskId": "",
+  "taskFingerprint": "",
+  "surfaceKind": "non_web",
+  "team": "",
+  "workflowProfile": "legacy-claude-codex-v1",
+  "reviewer": ""
+}
