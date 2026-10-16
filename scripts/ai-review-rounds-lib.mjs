@@ -2889,6 +2889,14 @@ export function recordCodeReviewRound(root, task, request, {
         requestId,
         findingsDigest,
       ].join('\n')).digest('hex').slice(0, 24);
+      // 2026-10-16: 上限到達で実用阻害が残ったら、Astra原因診断の記録を必須にする（停止・本人相談の前提）。
+      state.codeReview.astraDiagnosis = state.codeReview.astraDiagnosis || {
+        required: true,
+        status: 'pending',
+        model: 'gpt-6-astra',
+        effort: 'high',
+        maxAttempts: 1,
+      };
       state.codeReview.parentEscalation = {
         escalationId,
         sizeClass: state.codeReview.sizeClass,
