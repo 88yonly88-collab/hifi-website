@@ -2896,6 +2896,9 @@ export function recordCodeReviewRound(root, task, request, {
         model: 'gpt-6-astra',
         effort: 'high',
         maxAttempts: 1,
+        requiredAt: new Date().toISOString(),
+        taskId: state.taskId || null,
+        candidateHash: null,
       };
       state.codeReview.parentEscalation = {
         escalationId,
