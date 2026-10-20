@@ -1,0 +1,15 @@
+{
+  "schema": "ai-dev-tool/org-dispatch@1",
+  "id": "0515c3283a4109c8632a16185ec1fdb461cf7468e5ce0aa604241c7ad32f32df",
+  "instructionPath": "/home/dev/projects/knowledge/docs/auto-push-notice-20261015.md",
+  "instructionSha256": "0515c3283a4109c8632a16185ec1fdb461cf7468e5ce0aa604241c7ad32f32df",
+  "dispatchedBy": "dsh-vp",
+  "dispatchedAt": "2026-10-15T11:33:11.342Z",
+  "cost": {
+    "estimateYen": 1,
+    "capYen": 3
+  },
+  "reviewRounds": 1,
+  "checklistCount": 9,
+  "status": "dispatched"
+}
