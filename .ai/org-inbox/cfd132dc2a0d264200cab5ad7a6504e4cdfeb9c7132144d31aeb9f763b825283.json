@@ -1,0 +1,21 @@
+{
+  "schema": "ai-dev-tool/org-dispatch@1",
+  "id": "cfd132dc2a0d264200cab5ad7a6504e4cdfeb9c7132144d31aeb9f763b825283",
+  "instructionPath": "/home/dev/projects/.agent-work/instructions/org-legacy-freeze-migrate-20261014.md",
+  "instructionSha256": "cfd132dc2a0d264200cab5ad7a6504e4cdfeb9c7132144d31aeb9f763b825283",
+  "dispatchedBy": "dsh-vp",
+  "dispatchedAt": "2026-10-14T07:46:22.124Z",
+  "cost": {
+    "estimateYen": 3000,
+    "capYen": 9000
+  },
+  "reviewRounds": 1,
+  "checklistCount": 9,
+  "status": "dispatched",
+  "notified": {
+    "via": "agmsg",
+    "ok": true,
+    "confirmed": true,
+    "detail": "dsh-lanes/dsh-vp->hifi-website"
+  }
+}

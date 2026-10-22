@@ -82,8 +82,8 @@ export const REVIEW_CHAIN_VERSION = 'deepseek-opus-v1';
 export const LEGACY_REVIEW_CHAIN_VERSION = 'opus-astra-opus-v1';
 export const NATIVE_REVIEW_CHAIN_VERSION = 'deepseek-native-cli-v1';
 export const CODE_REVIEW_LENSES = [
-  { round: 1, primaryReviewer: 'deepseek', reviewer: 'opus', key: 'spec', focus: '同じ対象版に固定されたDeepSeek一次照合とSol独立確認の記録を根拠に、Opusが仕様漏れ・誤実装・依頼範囲外の動作変更と実利用の経路を確認する' },
-  { round: 2, primaryReviewer: 'deepseek', reviewer: 'opus', key: 'user_path', focus: '同じ対象版に固定されたDeepSeek一次確認とSol独立確認の記録を根拠に、Opusが主要操作・保存・再読込と、空入力・境界値・連続操作・失敗時・再試行の証拠を照合する。実行できなかった項目は理由とともに未確認として残す' },
+  { round: 1, primaryReviewer: 'deepseek', parallelPrimaryReviewer: 'sol', reviewer: 'opus', key: 'spec', focus: '同じ対象版に固定されたDeepSeek一次照合とSol独立確認の記録を根拠に、Opusが仕様漏れ・誤実装・依頼範囲外の動作変更と実利用の経路を確認する' },
+  { round: 2, primaryReviewer: 'deepseek', parallelPrimaryReviewer: 'sol', reviewer: 'opus', key: 'user_path', focus: '同じ対象版に固定されたDeepSeek一次確認とSol独立確認の記録を根拠に、Opusが主要操作・保存・再読込と、空入力・境界値・連続操作・失敗時・再試行の証拠を照合する。実行できなかった項目は理由とともに未確認として残す' },
 ];
 export const LEGACY_CODE_REVIEW_LENSES = [
   { round: 1, primaryReviewer: null, reviewer: 'opus', key: 'spec', focus: 'Opusが独立に仕様漏れ・誤実装・依頼範囲外の動作変更を確認する' },
@@ -95,8 +95,8 @@ export const LEGACY_CODE_REVIEW_LENSES = [
 // The rounds stay sequential. This wording must not claim Opus read DeepSeek's body first; the
 // legacy direct-API chain keeps its original "DeepSeek一次確認の記録を根拠に" text in CODE_REVIEW_LENSES.
 export const NATIVE_CODE_REVIEW_LENSES = [
-  { round: 1, primaryReviewer: 'deepseek', reviewer: 'opus', key: 'spec', focus: '同一scope/HEAD/approvalに固定された対象版を、DeepSeek highとSolが各自独立に確認し、Opusが仕様漏れ・誤実装・依頼範囲外の動作変更を両結果で正式照合する' },
-  { round: 2, primaryReviewer: 'deepseek', reviewer: 'opus', key: 'user_path', focus: '同一scope/HEAD/approvalに固定された対象版を、DeepSeek highとSolが各自独立に確認し、Opusが主要操作・保存・再読込と境界値・失敗時・再試行の証拠を両結果で正式照合する。どちらかが実行できなかった項目は理由とともに未確認として残す' },
+  { round: 1, primaryReviewer: 'deepseek', parallelPrimaryReviewer: 'sol', reviewer: 'opus', key: 'spec', focus: '同一scope/HEAD/approvalに固定された対象版を、DeepSeek highとSolが各自独立に確認し、Opusが仕様漏れ・誤実装・依頼範囲外の動作変更を両結果で正式照合する' },
+  { round: 2, primaryReviewer: 'deepseek', parallelPrimaryReviewer: 'sol', reviewer: 'opus', key: 'user_path', focus: '同一scope/HEAD/approvalに固定された対象版を、DeepSeek highとSolが各自独立に確認し、Opusが主要操作・保存・再読込と境界値・失敗時・再試行の証拠を両結果で正式照合する。どちらかが実行できなかった項目は理由とともに未確認として残す' },
 ];
 
 export const CODE_REVIEW_COMMON_RULES = [
@@ -2531,7 +2531,10 @@ export function recordCodeReviewRound(root, task, request, {
   let primaryReviewRecord = request?.primaryReview || null;
   let nativePrimaryVerified = null;
   const usesNativeReviewChain = activeReviewChainVersion === NATIVE_REVIEW_CHAIN_VERSION;
-  if (usesNativeReviewChain && lens?.primaryReviewer === 'deepseek') {
+  // 2026-10-17 (Astra診断): 一次確認の要否はチェーンが宣言する観点集合から導く（観点キーや担当欄に依存しない）。
+  const requiresDeepseekPrimary = (Array.isArray(activeLenses) ? activeLenses : [])
+    .some((entry) => entry?.primaryReviewer === 'deepseek');
+  if (usesNativeReviewChain && requiresDeepseekPrimary) {
     // 2026-09-28 (T1-T5 stage 4B): the native chain re-verifies its primary reviewer from the real
     // Codex JSONL receipt against the live worktree (current:true) and the request-owned
     // review-scope-v1 pin. A self-declared primaryReview, a hand-written .ai/queue artifact, or a
@@ -2567,7 +2570,8 @@ export function recordCodeReviewRound(root, task, request, {
     };
     nativePrimaryVerified = verified;
   }
-  if (lens?.primaryReviewer === 'deepseek' && !usesNativeReviewChain) {
+  // 選ばれた観点（comprehensive 等）に担当欄が無くても、既存の証跡照合を迂回させない。
+  if (requiresDeepseekPrimary && !usesNativeReviewChain) {
     const primary = request?.primaryReview;
     if (typeof optionalReviewEvidence?.primaryEvidence !== 'function' || !primary?.evidencePath || !primary?.evidenceHash) {
       throw new Error('DeepSeek一次確認の記録が無いか、実API証跡が指定されていません');
@@ -2896,6 +2900,9 @@ export function recordCodeReviewRound(root, task, request, {
         model: 'gpt-6-astra',
         effort: 'high',
         maxAttempts: 1,
+        requiredAt: new Date().toISOString(),
+        taskId: state.taskId || null,
+        candidateHash: null,
       };
       state.codeReview.parentEscalation = {
         escalationId,
