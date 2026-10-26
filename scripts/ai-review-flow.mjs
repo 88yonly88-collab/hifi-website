@@ -33,6 +33,10 @@ import {
 
 const __dirname = fileURLToPath(new URL('.', import.meta.url));
 const root = join(__dirname, '..');
+// 受理の入口であることを確定させる(OPEN-ITEMS §10, 2026-10-15)。提出側が設定した保存元の差し替え指定を
+// ここで無効化し、Sol 一次確認の保存元の錨を実行ユーザーのホーム由来の固定ルートだけにする
+// (封印の実体は scripts/review-evidence.mjs の sealSubmitterSessionHome)。
+try { (await import('./review-evidence.mjs')).sealSubmitterSessionHome(); } catch { /* 未配布の作業場では従来どおり */ }
 const contextDir = join(root, '.ai', 'context');
 const taskFile = join(root, '.ai', 'current-task.json');
 const resultFile = join(contextDir, 'review-result.md');

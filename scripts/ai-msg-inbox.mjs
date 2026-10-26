@@ -22,7 +22,7 @@ const requestedRole = roleArgIndex >= 0 ? process.argv[roleArgIndex + 1] : '';
 
 // --- current-task.json 読み込み ---
 if (!existsSync(taskFile)) {
-  console.error('✗ .ai/current-task.json が見つかりません。先に Step 1 を実行してください。');
+  console.error('✗ 作業票（.ai/current-task.json）がありません。先に作業の登録（インストーラーまたは init-task）を実行してください。');
   process.exit(2);
 }
 let task;
@@ -103,7 +103,7 @@ writeLog(filteredLog, matched);
 writeLog(ignoredLog, ignored);
 
 // --- 表示 ---
-console.log('=== agmsg inbox (filtered) ===');
+console.log('=== 自分宛メッセージ（絞り込み後） ===');
 console.log(`  role=${role} lane=${lane.team}/${lane.inbox}`);
 console.log(`  project=${task.project} repo=${task.repo} branch=${task.branch}` +
   (skipTask ? ' task=(任意)' : ` task=${wantTask}`));

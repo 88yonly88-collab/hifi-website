@@ -3,7 +3,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import {createHash} from 'node:crypto';
 import {spawnSync} from 'node:child_process';
-import {homedir} from 'node:os';
+import {homedir, userInfo} from 'node:os';
 import {createRequire} from 'node:module';
 export const sha = bytes => createHash('sha256').update(bytes).digest('hex');
 // 証跡検査が1ファイルとして読む上限(prompt/manifest/結果、manifest 上の各ファイル、削除ファイルの基準版)。
@@ -185,6 +185,220 @@ export function primaryEvidence(root, file, {task, round, lens, current=true}) {
   const binding=JSON.stringify({taskId:task.taskId,taskFingerprint:task.taskFingerprint,round,lens,reviewBaseCommit:receipt.reviewBaseCommit,reviewHeadCommit:receipt.reviewHeadCommit,approvalHash:receipt.approvalHash,manifestHash:receipt.manifestHash});
   if (!verified.prompt.includes('Review binding: '+binding)) throw Error('primary review input does not bind task/approval/version');
   return {status:'completed',model:verified.result.actual.model,effort:String(verified.result.actual.effort),round,lens,reviewChainVersion:'deepseek-opus-v1',evidencePath:path.resolve(file),evidenceHash:sha(regular(file)),manifestHash:verified.manifestHash,reviewBaseCommit:receipt.reviewBaseCommit,reviewHeadCommit:receipt.reviewHeadCommit,approvalHash:receipt.approvalHash,verdict:verified.result.verdict};
+}
+
+// 2026-10-14 (Sol 配線): 各巡の一次確認は DeepSeek と Sol の並列。Sol 側は ChatGPT サブスクの
+// `codex exec` セッション(JSONL)で走るため、DeepSeek の API 診断(result/diagnostic)とは別形式になる。
+// ここでは receipt が指す実 JSONL を読み、turn_context の model/effort と final_answer 本文を
+// 実物から取り出して result.json と突き合わせる。宣言だけの記録・別 round/lens の流用・改変は通さない。
+// 検証の厳しさは primaryEvidence(DeepSeek) と同じ(manifest 全体・変更範囲・HEAD/承認・binding)。
+export const SOL_PRIMARY_KIND = 'parallel-primary-review-v1';
+export const SOL_PRIMARY_MODEL = 'gpt-6.1-sol';
+export const SOL_PRIMARY_EFFORT = 'high';
+export const SOL_SESSION_SANDBOX = 'read-only';
+function solAssistantContent(payload) {
+  if (Array.isArray(payload.content)) {
+    return payload.content.map((item) => (typeof item === 'string' ? item : item?.text || item?.output_text || '')).join('');
+  }
+  return String(payload.output_text || payload.content || payload.text || '');
+}
+// 実測(2026-10-14, codex-cli 0.160.0。tests/fixtures/sol-codex-exec/ 参照)の保存セッションログは
+//   session_meta / event_msg task_started(turn_id) / response_item message(role,content) /
+//   turn_context(turn_id,model,effort,cwd,sandbox_policy) / event_msg task_complete(turn_id)
+// の並びで、assistant の最終回答は role='assistant' かつ phase='final_answer'。
+// 1つの task_complete をその回合の境界として、その turn_id の turn_context と、その窓の内側の
+// 入力・回答だけを採る。加えて、回答の明示的な所属(item_completed の AgentMessage の turn_id)・
+// task_complete.last_agent_message・context の位置・途中のターン境界・入力の順序を照合する。
+// さらに「信頼済み保存元(~/.codex/sessions)の実ファイルと一致すること」を検証する。
+export const SOL_SESSION_HOME_ENV = 'SOL_CODEX_HOME';
+// 受理側の錨は「受理プロセスの実効ユーザーのホーム」から導いた固定ルートだけにする(OPEN-ITEMS §10, 2026-10-15)。
+// 提出側は同じユーザーとして環境変数を設定できるため、SOL_CODEX_HOME も $HOME も錨に使わない。
+//   - os.homedir() は POSIX では $HOME に従うため、HOME を差し替えるだけで錨が動いてしまう。
+//   - os.userInfo().homedir は passwd エントリ由来で、環境変数では変わらない。こちらを使う。
+// これで「ストアごと差し替えた合成ログ」は、受理時に保存元の外として拒否される。
+export function acceptSessionHome() {
+  let info = null;
+  try {
+    info = userInfo();
+  } catch (error) {
+    // ここで homedir()($HOME 依存)へ落とすと、userInfo() が失敗する環境では提出側が HOME で錨を動かせる。
+    // 錨を確定できないなら、受理せずに停止する(fail-closed)。独立レビュー 2026-10-15 の Major 指摘。
+    throw Error(`SOL_ACCEPT_HOME_UNRESOLVED: 実行ユーザーのホームを passwd から決められません (${(error && error.message) || error})`);
+  }
+  const home = info && typeof info.homedir === 'string' ? info.homedir : '';
+  if (!home) {
+    throw Error('SOL_ACCEPT_HOME_UNRESOLVED: 実行ユーザーのホームが空です。受理の錨を確定できないため停止します');
+  }
+  return home;
+}
+// テスト専用の差し替え経路。ここの `home` 引数(と後方互換の SOL_CODEX_HOME)を尊重するが、
+// 本番の受理は solPrimaryEvidenceAccepted だけを使い、注入された値を一切受け取らない。
+function solTrustedSessionRoot(home) {
+  return trustedCodexSessionRoot(home || process.env[SOL_SESSION_HOME_ENV] || acceptSessionHome());
+}
+// 本番の受理の入口で、提出側が設定した SOL_CODEX_HOME を無効化する(OPEN-ITEMS §10, 2026-10-15)。
+// これを呼んだ後は、錨は acceptSessionHome() の固定ルートだけになる。
+// テストは受理の入口を通さずに検証関数を直接呼ぶので、この封印の影響を受けない(差し替え経路の分離)。
+export function sealSubmitterSessionHome() {
+  const requested = process.env[SOL_SESSION_HOME_ENV];
+  delete process.env[SOL_SESSION_HOME_ENV];
+  return typeof requested === 'string' ? requested : '';
+}
+export function verifySolSession(base, ref, {home = ''}={}) {
+  const bytes = artifact(base, ref.session, ref.sessionHash);
+  const text = bytes.toString('utf8');
+  if (text.includes('\u0000')) throw Error('sol session binary');
+  const records = [];
+  let ordinal = -1;
+  for (const line of text.split(/\r?\n/u)) {
+    const trimmed = line.trim();
+    if (!trimmed) continue;
+    let obj;
+    try { obj = JSON.parse(trimmed); } catch { continue; }
+    ordinal += 1;
+    records.push({ordinal, obj});
+  }
+  const payloadOf = (record) => (record.obj && typeof record.obj.payload === 'object' && record.obj.payload ? record.obj.payload : record.obj);
+  const eventOf = (record, name) => record.obj?.type === 'event_msg' && payloadOf(record)?.type === name;
+  // 実測では thread_id(--json の thread.started と保存ログのファイル名/session_meta.id)と
+  // turn_id(turn_context/task_complete の回合)は**別の値**。混同しない。
+  const sessionMeta = records.find((record) => record.obj?.type === 'session_meta');
+  const threadId = String(payloadOf(sessionMeta)?.id || '');
+  if (!threadId) throw Error('sol session thread id missing');
+  const completions = records.filter((record) => eventOf(record, 'task_complete'));
+  if (completions.length !== 1) throw Error(`sol session task_complete count invalid: ${completions.length}`);
+  const completion = completions[0];
+  const turnId = String(payloadOf(completion)?.turn_id || '');
+  if (!turnId) throw Error('sol session turn id missing');
+  const ownContexts = records.filter((record) => record.obj?.type === 'turn_context' && String(payloadOf(record)?.turn_id || '') === turnId);
+  if (ownContexts.length !== 1) throw Error(`sol session turn_context count invalid: ${ownContexts.length}`);
+  const context = ownContexts[0];
+  const started = records.find((record) => eventOf(record, 'task_started') && String(payloadOf(record)?.turn_id || '') === turnId);
+  const start = started ? started.ordinal : context.ordinal;
+  const end = completion.ordinal;
+  if (end <= start) throw Error('sol session window invalid');
+  // ③ その回合の turn_context は task_complete より前にあること。
+  if (context.ordinal <= start || context.ordinal >= end) throw Error('sol session turn_context outside the turn window');
+  // ④ 窓の内側に別ターンの境界(turn_context / task_started / task_complete)を跨がないこと。
+  const foreignContexts = records.filter((record) => record.ordinal > start && record.ordinal < end
+    && record.obj?.type === 'turn_context' && record.ordinal !== context.ordinal);
+  const foreignStarts = records.filter((record) => record.ordinal > start && record.ordinal < end && eventOf(record, 'task_started'));
+  const foreignCompletes = records.filter((record) => record.ordinal > start && record.ordinal < end && eventOf(record, 'task_complete'));
+  if (foreignContexts.length) throw Error('sol session foreign turn_context inside the turn window');
+  if (foreignStarts.length || foreignCompletes.length) throw Error('sol session foreign turn boundary inside the turn window');
+  const inWindow = records.filter((record) => record.ordinal > start && record.ordinal < end
+    && record.obj?.type === 'response_item' && payloadOf(record)?.type === 'message');
+  const prompts = inWindow.filter((record) => payloadOf(record)?.role === 'user');
+  const finals = inWindow.filter((record) => payloadOf(record)?.role === 'assistant'
+    && String(payloadOf(record)?.phase || '').toLowerCase() === 'final_answer');
+  if (!prompts.length) throw Error('sol session prompt missing');
+  if (finals.length !== 1) throw Error(`sol session final answer count invalid: ${finals.length}`);
+  // ② 対象入力はすべて回答より前にあること。
+  if (!prompts.every((record) => record.ordinal < finals[0].ordinal)) throw Error('sol session prompt after the final answer');
+  // ① 回答の明示的な所属: 同じ item.id の item_completed(AgentMessage) がこのターンを指し、
+  //    task_complete.last_agent_message がこの回答と一致すること。
+  const finalPayload = payloadOf(finals[0]);
+  const finalId = String(finalPayload?.id || '');
+  if (!finalId) throw Error('sol session final answer id missing');
+  const answerEvents = records.filter((record) => eventOf(record, 'item_completed')
+    && payloadOf(record)?.item?.type === 'AgentMessage' && String(payloadOf(record)?.item?.id || '') === finalId);
+  if (answerEvents.length !== 1) throw Error(`sol session final answer item_completed count invalid: ${answerEvents.length}`);
+  if (String(payloadOf(answerEvents[0])?.turn_id || '') !== turnId) throw Error('sol session final answer turn mismatch');
+  if (answerEvents[0].ordinal <= start || answerEvents[0].ordinal >= end) throw Error('sol session final answer item_completed outside the turn window');
+  const finalText = solAssistantContent(finalPayload);
+  if (String(payloadOf(completion)?.last_agent_message ?? '') !== finalText) throw Error('sol session task_complete last_agent_message mismatch');
+  const contextPayload = payloadOf(context);
+  const model = String(contextPayload?.model || '');
+  const effort = String(contextPayload?.effort || contextPayload?.reasoning_effort || '');
+  const sandbox = String(contextPayload?.sandbox_policy?.type || contextPayload?.sandbox || '');
+  if (!model) throw Error('sol session model missing');
+  if (!effort) throw Error('sol session effort missing');
+  if (sandbox !== SOL_SESSION_SANDBOX) throw Error(`sol session sandbox mismatch: ${sandbox || '(none)'}`);
+  const promptText = prompts.map((record) => solAssistantContent(payloadOf(record))).join('\n');
+  if (!promptText.trim()) throw Error('sol session prompt missing');
+  if (!finalText.trim()) throw Error('sol session final answer missing');
+  if (model !== SOL_PRIMARY_MODEL) throw Error(`sol session model mismatch: ${model || '(none)'}`);
+  if (effort !== SOL_PRIMARY_EFFORT) throw Error(`sol session effort mismatch: ${effort || '(none)'}`);
+  // 受理側でも「信頼済み保存元の実ファイルに由来すること」を確かめる。receipt 配下のコピーだけを
+  // 合成しても通らない。保存元が消えている/読めない/別の実体なら未確認として止める。
+  const source = String(ref.sessionSource || '');
+  if (!path.isAbsolute(source)) throw Error('sol session source must be an absolute path in the trusted store');
+  let sourceRoot = '';
+  try { sourceRoot = fs.realpathSync(solTrustedSessionRoot(home)); } catch { throw Error('sol session trusted store is unreadable'); }
+  let realSource = '';
+  try { realSource = fs.realpathSync(source); } catch { throw Error(`SOL_SESSION_SOURCE_UNREADABLE: ${source}`); }
+  if (!(realSource === sourceRoot || realSource.startsWith(sourceRoot + path.sep))) throw Error('sol session source is outside the trusted store');
+  if (!path.basename(realSource).endsWith(`-${threadId}.jsonl`)) throw Error('sol session source name does not carry the thread id');
+  const sourceBytes = fs.readFileSync(realSource);
+  if (sha(sourceBytes) !== String(ref.sessionSourceHash || '')) throw Error('sol session source hash mismatch');
+  if (!sourceBytes.equals(bytes)) throw Error('sol session copy differs from the trusted store file');
+  return {model, effort, sandbox, threadId, turnId, finalText, promptText};
+}
+export function solPrimaryEvidence(root, file, {task, round, lens, current=true, home=''}={}) {
+  const receipt=JSON.parse(regular(file));
+  if (receipt.kind!==SOL_PRIMARY_KIND || receipt.schemaVersion!==1) throw Error('sol primary evidence kind/schema mismatch');
+  if (receipt.reviewer!=='sol' || receipt.model!==SOL_PRIMARY_MODEL || receipt.effort!==SOL_PRIMARY_EFFORT) throw Error('sol primary evidence reviewer/model mismatch');
+  if (receipt.taskId!==task.taskId || receipt.taskFingerprint!==task.taskFingerprint || receipt.round!==round || receipt.lens!==lens) throw Error('sol primary review task/round/lens mismatch');
+  const base=path.dirname(file);
+  const turn=verifySolSession(base,receipt,{home});
+  const result=JSON.parse(artifact(base,receipt.result,receipt.resultHash));
+  if (!['pass','findings'].includes(result.verdict) || !Array.isArray(result.findings) || !Array.isArray(result.unverified) || (result.verdict==='pass')!==(result.findings.length===0)) throw Error('invalid sol review result');
+  if (result.promptHash!==receipt.promptHash || result.manifestHash!==receipt.manifestHash) throw Error('sol review input binding mismatch');
+  if (String(result.actual?.model||'')!==turn.model || String(result.actual?.effort||'')!==turn.effort) throw Error('sol result differs from session runtime');
+  const parsed=JSON.parse(String(turn.finalText).trim().replace(/^```(?:json)?\s*|\s*```$/g,''));
+  for (const key of ['verdict','findings','unverified']) if (JSON.stringify(parsed[key])!==JSON.stringify(result[key])) throw Error('sol result differs from provider response');
+  const prompt=artifact(base,receipt.prompt,receipt.promptHash);
+  const promptText=prompt.toString('utf8');
+  if (!turn.promptText.includes(promptText)) throw Error('sol session prompt does not contain the reviewed prompt');
+  // 実測の `--json` 標準出力と保存ログを結び付ける。同じ thread_id で、stdout の最終 agent_message が
+  // 保存ログの最終回答(=result)と一致すること。片方だけ差し替えた receipt を通さない。
+  if (typeof receipt.codexStdout !== 'string' || !receipt.codexStdout) throw Error('sol primary evidence is missing the codex stdout transcript');
+  const stdoutText = artifact(base, receipt.codexStdout, receipt.codexStdoutHash).toString('utf8');
+  let stdoutThread = '';
+  let agentText = null;
+  for (const line of stdoutText.split(/\r?\n/u)) {
+    const trimmed = line.trim();
+    if (!trimmed) continue;
+    let obj;
+    try { obj = JSON.parse(trimmed); } catch { continue; }
+    if (obj?.type === 'thread.started' && typeof obj.thread_id === 'string') stdoutThread = obj.thread_id;
+    if (obj?.type === 'item.completed' && obj.item?.type === 'agent_message' && typeof obj.item.text === 'string') agentText = obj.item.text;
+  }
+  if (!stdoutThread || stdoutThread !== turn.threadId) throw Error('sol codex stdout thread does not match the saved session');
+  if (agentText === null) throw Error('sol codex stdout has no agent_message');
+  let agentParsed;
+  try { agentParsed = JSON.parse(String(agentText).trim().replace(/^```(?:json)?\s*|\s*```$/g,'')); }
+  catch (error) { throw Error(`sol codex stdout agent_message is not JSON: ${error.message}`); }
+  for (const key of ['verdict','findings','unverified']) if (JSON.stringify(agentParsed[key])!==JSON.stringify(result[key])) throw Error('sol codex stdout differs from the saved session answer');
+  const manifestBytes=artifact(base,receipt.manifest,receipt.manifestHash);
+  const manifest=JSON.parse(manifestBytes);
+  verifyManifest(root,manifest,{current});
+  if (!promptText.includes(receipt.manifestHash)) throw Error('sol review input binding mismatch');
+  if (!lensTags[lens] || !promptText.includes(lensTags[lens])) throw Error('sol primary review prompt lens mismatch');
+  if (result.verdict!=='pass' || result.unverified.length) throw Error('sol primary review has unresolved findings/unverified items');
+  assertWholeVersionCoverage(manifest);
+  if (current) {
+    verifyChangedScope(root,new Set(manifest.files.map(entry=>entry.path)),receipt.reviewBaseCommit);
+    verifyDeletedBase(root,manifest,receipt.reviewBaseCommit);
+    const head=spawnSync('git',['-C',root,'rev-parse','HEAD'],{encoding:'utf8'});
+    if (head.status!==0 || receipt.reviewHeadCommit!==head.stdout.trim() || receipt.approvalHash!==sha(regular(path.join(root,'.ai/approval.json')))) throw Error('sol primary review HEAD/approval mismatch');
+  }
+  const binding=JSON.stringify({taskId:task.taskId,taskFingerprint:task.taskFingerprint,round,lens,reviewBaseCommit:receipt.reviewBaseCommit,reviewHeadCommit:receipt.reviewHeadCommit,approvalHash:receipt.approvalHash,manifestHash:receipt.manifestHash});
+  if (!promptText.includes('Review binding: '+binding)) throw Error('sol primary review input does not bind task/approval/version');
+  return {status:'completed',reviewer:'sol',model:turn.model,effort:turn.effort,round,lens,evidencePath:path.resolve(file),evidenceHash:sha(regular(file)),manifestHash:receipt.manifestHash,reviewBaseCommit:receipt.reviewBaseCommit,reviewHeadCommit:receipt.reviewHeadCommit,approvalHash:receipt.approvalHash,verdict:result.verdict};
+}
+
+// 本番の受理専用の入口(OPEN-ITEMS §10, 2026-10-15)。差し替え(注入)の引数を**持たない**。
+// 受理側の設定である acceptSessionHome() からだけ錨を導くので、提出側が SOL_CODEX_HOME や HOME を
+// 設定しても受理の保存元は動かない。テストで差し替えたいときは solPrimaryEvidence を `home` 付きで使う
+// (それが分離された「テスト経路」)。
+export function solPrimaryEvidenceAccepted(root, file, {task, round, lens, current=true}={}) {
+  // 受理の入口であることをここで確定させてから照合する。提出側が設定した差し替えの指定は無効化する。
+  sealSubmitterSessionHome();
+  const home = acceptSessionHome();
+  // acceptSessionHome() が空を返す環境では、環境変数へ落ちて錨が動き得る。黙って進めない(fail-closed)。
+  if (!home) throw Error('SOL_ACCEPT_HOME_UNRESOLVED: 受理側の保存元の錨を実行ユーザーのホームから決められません');
+  return solPrimaryEvidence(root, file, {task, round, lens, current, home});
 }
 
 export function primarySplitEvidence(root, aggregate, {task, round, lens, plan, current=true}={}) {

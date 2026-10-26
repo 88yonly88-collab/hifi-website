@@ -104,6 +104,13 @@ import { RUNTIME_EVIDENCE_MARKER_KEY, withReviewRequestLock } from './ai-runtime
 // distributed; a native chain without it fails closed instead of falling back.
 let optionalReviewEvidence = null;
 try { optionalReviewEvidence = await import('./review-evidence.mjs'); } catch { optionalReviewEvidence = null; }
+// 受理の入口であることを確定させる(OPEN-ITEMS §10, 2026-10-15)。提出側が設定した保存元の差し替え指定を
+// ここで無効化し、Sol 一次確認の保存元の錨を実行ユーザーのホーム由来の固定ルートだけにする
+// (封印の実体は scripts/review-evidence.mjs の sealSubmitterSessionHome)。
+// テストはこの入口を通らず検証関数を直接呼ぶため、この封印の影響を受けない。
+if (optionalReviewEvidence && typeof optionalReviewEvidence.sealSubmitterSessionHome === 'function') {
+  optionalReviewEvidence.sealSubmitterSessionHome();
+}
 
 const __dirname = fileURLToPath(new URL('.', import.meta.url));
 const root = join(__dirname, '..');
@@ -388,7 +395,7 @@ if (stdinMode) {
 
 // --- 1. current-task.json ---
 if (!existsSync(taskFile)) {
-  console.error('✗ .ai/current-task.json が見つかりません。先に Step 1 を実行してください。');
+  console.error('✗ 作業票（.ai/current-task.json）がありません。先に作業の登録（インストーラーまたは init-task）を実行してください。');
   process.exit(2);
 }
 let task;

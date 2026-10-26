@@ -9,12 +9,13 @@ import {
   lstatSync,
   mkdirSync,
   openSync,
+  readdirSync,
   readFileSync,
   renameSync,
   writeFileSync,
 } from 'node:fs';
 import { homedir } from 'node:os';
-import { basename, dirname, join } from 'node:path';
+import { basename, dirname, join, resolve } from 'node:path';
 import {
   atomicWriteJson,
   currentGitIdentity,
@@ -99,9 +100,189 @@ function argValue(name) {
   return String(process.argv[index + 1] || '').trim();
 }
 
-for (const name of ['--apply', '--retrospective', '--force-with-warning', '--allow-uncommitted', '--user-confirmed', '--input', '--evidence']) {
+for (const name of ['--apply', '--retrospective', '--force-with-warning', '--allow-uncommitted', '--user-confirmed', '--input', '--evidence', '--instruction', '--delivery-record']) {
   if (process.argv.filter((arg) => arg === name).length > 1) fail(`${name} を重複して指定できません`);
 }
+
+// 設置レビュー（deploy_targets 台帳）の完了ゲート。2026-10-17 親の裁定（選択肢1）。
+// 台帳を書いた指示書がある案件は、install-review-check.mjs --ledger が合格（不良0・未確認0）するまで
+// 完了にしない。台帳の無い指示書・他リポジトリの案件・instruction_status: done は止めない。
+// 安い検査なので、承認・E2E・レビューの各関所より先に判定して早く止める。
+const installReviewInstruction = argValue('--instruction');
+let installReviewGate = null;
+{
+  let installReviewTask = null;
+  let installReviewDeclaration = '';
+  try {
+    if (existsSync(taskPath)) installReviewTask = readJson(taskPath);
+  } catch {
+    installReviewTask = null;
+  }
+  // 実際に閉じる宣言を優先する。後追い完了は --declaration で宣言を選べるため、
+  // current-task から選ぶと「検査した案件」と「閉じる案件」がずれる（2026-10-17 レビュー指摘）。
+  const installReviewDeclarationArg = argValue('--declaration');
+  try {
+    const candidate = installReviewDeclarationArg
+      ? resolveDeclarationPath(installReviewDeclarationArg)
+      : declarationPathFor(root, installReviewTask, '', { validateTaskRepo: false });
+    if (existsSync(candidate)) installReviewDeclaration = readFileSync(candidate, 'utf8');
+  } catch {
+    installReviewDeclaration = '';
+  }
+  const { installReviewCompletionBlockers } = await import('./install-review-complete-lib.mjs');
+  installReviewGate = await installReviewCompletionBlockers({
+    root,
+    instruction: installReviewInstruction,
+    declaration: installReviewDeclaration,
+    task: installReviewTask,
+  });
+  for (const line of installReviewGate.inactive) console.log(`INSTALL_REVIEW_COMPLETE_GATE_INACTIVE: ${line}`);
+  for (const line of installReviewGate.checked) console.log(`INSTALL_REVIEW_COMPLETE_GATE_OK: ${line}`);
+  for (const line of installReviewGate.skipped) console.log(`INSTALL_REVIEW_COMPLETE_GATE_SKIP: ${line}`);
+  for (const line of installReviewGate.warnings) console.log(`INSTALL_REVIEW_COMPLETE_GATE_WARN: ${line}`);
+  if (installReviewGate.blockers.length > 0) {
+    fail(['設置レビューの完了ゲートで止めました（不良または未確認）', ...installReviewGate.blockers]);
+  }
+}
+
+// 完了の定義（設置と検証の4点）の機械判定を完了ゲートへ接続する（2026-10-18）。
+// 背景: 「作ったのに本番に反映されていない」が3〜5回繰り返された原因は、完了の定義に
+// 設置と検証が無かったこと。rules/delivery-installed.md の記録（docs/deliverables/<ID>.json）を
+// 完了時に必ず判定する。
+// 既定は「設置ゲートが実際に効いている案件」で拒否する（2026-10-18 既定ON化）。
+// 対象は installReviewGate.active（このリポジトリ内に設置先を持つ台帳つき指示書）だけ。
+// 台帳なし・deploy_required:false・設置先が全部リポジトリ外・instruction_status: done は
+// 設置ゲートと同じく止めない（誤差し戻しを避ける）。
+// DELIVERY_REQUIRED=1 は台帳の有無に関わらず常に拒否、0/false/off は警告のみ。
+// 後追い完了(retrospective)にも同じ判定を掛けるため、経路分岐より前で実行する。
+const DELIVERY_MODE = String(process.env.DELIVERY_REQUIRED || '').trim().toLowerCase();
+const DELIVERY_FORCED = ['1', 'true', 'yes'].includes(DELIVERY_MODE);
+const DELIVERY_DISABLED = ['0', 'false', 'no', 'off'].includes(DELIVERY_MODE);
+const DELIVERY_ACTIVE = Boolean(
+  installReviewGate && Array.isArray(installReviewGate.active) && installReviewGate.active.length > 0,
+);
+const DELIVERY_STRICT = !DELIVERY_DISABLED && (DELIVERY_FORCED || DELIVERY_ACTIVE);
+
+function deliveryGateScopeNote() {
+  if (DELIVERY_DISABLED) return 'DELIVERY_REQUIRED=0 のため警告のみ';
+  if (DELIVERY_FORCED) return 'DELIVERY_REQUIRED=1 のため台帳の有無に関わらず拒否';
+  if (DELIVERY_ACTIVE) return `設置台帳が有効なため既定で拒否（${installReviewGate.active.join(', ')}）`;
+  return '設置台帳が無い/設置不要/リポジトリ外/done のため、記録なしは警告のみ（誤差し戻しを避ける）';
+}
+
+function deliveryCheckerCandidates() {
+  const knowledgeRoot = process.env.KNOWLEDGE_ROOT || join(homedir(), 'projects', 'knowledge');
+  return [
+    join(root, 'scripts', 'check-delivery-record.mjs'),
+    join(knowledgeRoot, 'scripts', 'check-delivery-record.mjs'),
+  ];
+}
+
+function deliveryTaskId() {
+  try {
+    if (!existsSync(taskPath)) return '';
+    return String(readJson(taskPath)?.taskId || '').trim();
+  } catch {
+    return '';
+  }
+}
+
+// 記録は「この作業のもの」だけを合格に数える。別タスクの古い記録が残っていても通さない。
+function deliveryRecordMatchesTask(recordPath, taskId) {
+  if (!taskId) return true;
+  const base = basename(recordPath).replace(/\.json$/iu, '');
+  const rawBase = base.toLowerCase();
+  const rawTask = taskId.toLowerCase();
+  if (rawBase === rawTask || rawBase.includes(rawTask) || rawTask.includes(rawBase)) return true;
+  const normalize = (value) => value.toLowerCase().replace(/[^a-z0-9]+/gu, '');
+  const a = normalize(base);
+  const b = normalize(taskId);
+  return Boolean(a && b) && (a === b || a.includes(b) || b.includes(a));
+}
+
+function judgeDeliveryRecord(recordPath, checker) {
+  const judged = spawnSync(process.execPath, [checker, recordPath], {
+    encoding: 'utf8', timeout: 20_000, windowsHide: true,
+  });
+  if (judged.error) return { status: 2, output: `実行できません: ${judged.error.message}` };
+  return { status: judged.status, output: `${judged.stdout || ''}${judged.stderr || ''}`.trim() };
+}
+
+function rejectDeliveryGate(reason) {
+  console.error(`DELIVERY_GATE_REJECTED: ${reason}`);
+  console.error('完了の定義（built／installed／verify_cmd／verify_output の4点）を記録してから再実行してください。');
+  console.error('正本: ~/projects/knowledge/rules/delivery-installed.md');
+  process.exit(1);
+}
+
+function enforceDeliveryRecordGate() {
+  console.log(`DELIVERY_GATE_SCOPE: ${deliveryGateScopeNote()}`);
+  const taskId = deliveryTaskId();
+  const taskLabel = taskId || '(taskId不明)';
+  const explicit = argValue('--delivery-record') || String(process.env.DELIVERY_RECORD || '').trim();
+  const checker = deliveryCheckerCandidates().find((candidate) => existsSync(candidate)) || '';
+  if (!checker) {
+    const reason = 'DELIVERY_CHECK_UNAVAILABLE: scripts/check-delivery-record.mjs が見つかりません';
+    if (DELIVERY_STRICT) rejectDeliveryGate(reason);
+    console.log(`DELIVERY_RECORD_WARNING: ${reason}（判定できないため未確認として扱う）`);
+    return;
+  }
+
+  let records = [];
+  if (explicit) {
+    records = [resolve(root, explicit)];
+  } else {
+    const deliverablesDir = join(root, 'docs', 'deliverables');
+    try {
+      if (existsSync(deliverablesDir)) {
+        records = readdirSync(deliverablesDir)
+          .filter((name) => name.endsWith('.json') && !name.startsWith('.'))
+          .sort()
+          .map((name) => join(deliverablesDir, name));
+      }
+    } catch (error) {
+      if (DELIVERY_STRICT) rejectDeliveryGate(`docs/deliverables を読めません（${error.message}）`);
+      console.log(`DELIVERY_RECORD_WARNING: docs/deliverables を読めません（${error.message}）`);
+      return;
+    }
+  }
+
+  if (records.length === 0) {
+    const hint = `成果物記録がありません（${join(root, 'docs', 'deliverables', '<ID>.json')}）。taskId=${taskLabel}`;
+    if (DELIVERY_STRICT) rejectDeliveryGate(hint);
+    console.log(`DELIVERY_RECORD_WARNING: ${hint}`);
+    console.log('DELIVERY_RECORD_NOTE: 既定は「設置台帳が有効な案件」で拒否します。台帳なし・設置不要・リポジトリ外・done は警告のみ。DELIVERY_REQUIRED=1 で常に拒否、=0 で警告のみ。');
+    return;
+  }
+
+  const judged = records.map((recordPath) => ({ recordPath, ...judgeDeliveryRecord(recordPath, checker) }));
+  const passing = judged.filter((item) => item.status === 0);
+  const matched = passing.filter((item) => deliveryRecordMatchesTask(item.recordPath, taskId));
+
+  if (matched.length > 0) {
+    console.log(`DELIVERY_RECORD_OK: ${matched[0].recordPath}`);
+    console.log(`DELIVERY_RECORD_MATCHED_TASK: ${taskLabel}`);
+    return;
+  }
+
+  for (const item of judged) {
+    const label = item.status === 0 ? 'OK' : `NG(exit ${item.status})`;
+    console.log(`DELIVERY_RECORD_CANDIDATE: ${label} ${item.recordPath}`);
+    if (item.status !== 0) {
+      for (const line of item.output.split('\n')) {
+        if (line.trim()) console.log(`  ${line}`);
+      }
+    }
+  }
+  const reason = passing.length > 0
+    ? `この作業(taskId=${taskLabel})の記録がありません（合格した記録は別タスクのもの: ${passing.map((item) => basename(item.recordPath)).join(', ')}）`
+    : `合格した成果物記録がありません（判定した記録: ${judged.map((item) => basename(item.recordPath)).join(', ')}）`;
+  if (DELIVERY_STRICT) rejectDeliveryGate(reason);
+  console.log(`DELIVERY_RECORD_WARNING: ${reason}`);
+  console.log('DELIVERY_RECORD_NOTE: 既定は「設置台帳が有効な案件」で拒否します。台帳なし・設置不要・リポジトリ外・done は警告のみ。DELIVERY_REQUIRED=1 で常に拒否、=0 で警告のみ。');
+}
+
+enforceDeliveryRecordGate();
 
 function isCompletionStatePath(path) {
   return path === '.ai'
@@ -928,7 +1109,12 @@ if (cmgbFocusedBlockers.length > 0) {
 }
 let controllerCompletionProvenance = null;
 if (reviewProcess?.codeReviewOutcome || reviewCycleRegistryExists(root) || cmgbIntakeCriterionPresent(root, task)) {
-  try { controllerCompletionProvenance = assertCompletionAllowed(root, task); } catch (error) { if (error.message === 'REVIEW_CYCLE_PRACTICAL_PASS_REQUIRED') fail(['コードレビューの controller practical final が未確認です']); else throw error; }
+  try {
+    controllerCompletionProvenance = assertCompletionAllowed(root, task, { declaration });
+    if (controllerCompletionProvenance?.migration) {
+      console.log(`REVIEW_CYCLE_MIGRATION_COMPLETION: ${controllerCompletionProvenance.migration}（根拠: ${controllerCompletionProvenance.basis}）`);
+    }
+  } catch (error) { if (error.message === 'REVIEW_CYCLE_PRACTICAL_PASS_REQUIRED') fail(['コードレビューの controller practical final が未確認です']); else throw error; }
 }
 const externalReviewIndex = join(root, '.ai', 'external-reviews', 'index.json');
 // 外部経路の受理状態は review-evidence.mjs の externalReviewSettled を唯一の判定元にする。
@@ -973,6 +1159,7 @@ const verification = {
   completionReference,
   reviewProcess,
   ...(controllerCompletionProvenance?.kind === 'cmgb-intake-only-terminal-provenance' ? { controllerCompletionProvenance } : {}),
+  ...(controllerCompletionProvenance?.migration ? { reviewCycleCompletionProvenance: controllerCompletionProvenance } : {}),
   status: forceWithWarning ? 'passed_with_warnings' : 'passed',
   applied: false,
 };

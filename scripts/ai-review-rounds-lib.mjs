@@ -859,10 +859,15 @@ export function reviewLensesForTask(task, state = null, { root = null } = {}) {
     }
     // 2026-10-13: CMGB native focused は同版で spec→user_path→edge を順に閉じる専用経路。
     // 標準チェーンの2周化とは別枠として3観点を維持する。
+    // 2026-10-25: ここの並列一次担当(sol)宣言は native 専用経路(CMGB native focused)にだけ載る。
+    // direct-API 連鎖の受領側 Sol 必須化は native には元々効かず、CMGB では送信側だけが要件を
+    // 増やしていた（独立レビューの指摘）。今回 native 受領側の再検証を入れたため、依頼記録に
+    // Sol 証跡が載る公式送信では受領側でも同じ照合が効く。CMGB を使う現行 task は0件。
     if (usesCmgbNativeFocused(task, version)) {
       return CMGB_NATIVE_FOCUSED_LENS_ORDER.map((key, index) => ({
         round: index + 1,
         primaryReviewer: 'deepseek',
+        parallelPrimaryReviewer: 'sol',
         reviewer: 'opus',
         key,
         focus: NATIVE_CODE_REVIEW_LENSES[index]?.focus || `CMGB native focused: ${key} を同版で閉じる`,
@@ -973,6 +978,11 @@ export function codeReviewMaxRounds(state) {
     if (state?.codeReview?.sizingStatus === 'pending') return null;
     return MAX_CODE_REVIEW_ROUNDS;
   }
+  // 2026-10-14: 保存済みの上限を優先する。旧方式（legacy-claude-codex-v1）は履歴として凍結し、
+  // 進行中のレビューを安全な区切りまで完走させる（規則 code-review-three-rounds.md 現行節）。
+  // 定数だけへ寄せると、6/10往復で進行中の旧方式が2巡へ縮められ、次の往復が拒否される。
+  const savedMax = state?.codeReview?.maxRounds;
+  if (Number.isInteger(savedMax) && savedMax > 0) return savedMax;
   // 新方式の印を持たない進行中stateは、sizeClassの有無に応じて従来の上限を維持する。
   if (state?.codeReview?.sizeClass === 'small') return SMALL_CODE_REVIEW_ROUNDS;
   if (state?.codeReview?.sizeClass === 'large') return LEGACY_LARGE_CODE_REVIEW_ROUNDS;
@@ -1011,8 +1021,31 @@ export function nextCodeReviewLens(state, lenses = CODE_REVIEW_LENSES) {
   return lenses[(roundNumber - 1) % lenses.length] || null;
 }
 
+// 2026-10-13 ユーザー決定: 各巡の一次確認は DeepSeek とその並列の一次担当(Sol)が担う。
+// 一次確認の証跡が結び付くのは primaryReviewer 側だけなので、受理条件はここで変えない。
+export function codeReviewLensPrimaryReviewers(lens) {
+  return [lens?.primaryReviewer, lens?.parallelPrimaryReviewer]
+    .filter((name) => typeof name === 'string' && name.length > 0);
+}
+
 function missingPrimaryReviewRecord(round) {
   return round?.primaryReviewer === 'deepseek' && round?.primaryReview?.status !== 'completed';
+}
+
+// 2026-10-14 (Sol 配線): 各巡の一次確認は DeepSeek と「並列の一次担当」が担う。採用表が Sol(high) を
+// 指定しているのに起動も記録も無いまま round を閉じると、2巡×3モデルの決定が機械では守られない。
+// 並列担当ごとの受理条件(実モデル・effort)はここ1か所に置き、producer・検証・記録が同じ値を見る。
+export const PARALLEL_PRIMARY_REVIEWERS = Object.freeze({
+  sol: { model: 'gpt-6.1-sol', effort: 'high' },
+});
+export function parallelPrimaryReviewerName(lens) {
+  return typeof lens?.parallelPrimaryReviewer === 'string' && lens.parallelPrimaryReviewer
+    ? lens.parallelPrimaryReviewer
+    : null;
+}
+function missingParallelPrimaryReviewRecord(round) {
+  const name = typeof round?.parallelPrimaryReviewer === 'string' ? round.parallelPrimaryReviewer : '';
+  return Boolean(name) && round?.parallelPrimaryReview?.status !== 'completed';
 }
 
 export function reviewHandoffSummary(state) {
@@ -1036,11 +1069,15 @@ export function reviewHandoffSummary(state) {
     const unverifiedItems = [
       ...(Array.isArray(round.unverified) ? round.unverified : []),
       ...(missingPrimaryReviewRecord(round) ? ['DeepSeek一次確認の同一対象版記録なし'] : []),
+      ...(missingParallelPrimaryReviewRecord(round) ? [`${round.parallelPrimaryReviewer}並列一次確認の同一対象版記録なし`] : []),
     ];
     const unverified = unverifiedItems.length > 0 ? unverifiedItems.join(' / ') : 'なし';
-    const reviewerFlow = missingPrimaryReviewRecord(round)
-      ? `${round.primaryReviewer}(記録なし)→${round.reviewer || '独立担当不明'}`
-      : `${round.primaryReviewer || '一次担当なし'}→${round.reviewer || '独立担当不明'}`;
+    const primaryFlow = codeReviewLensPrimaryReviewers(round).join('+');
+    const primaryMissing = missingPrimaryReviewRecord(round)
+      || missingParallelPrimaryReviewRecord(round);
+    const reviewerFlow = primaryMissing
+      ? `${primaryFlow}(記録なし)→${round.reviewer || '独立担当不明'}`
+      : `${primaryFlow || '一次担当なし'}→${round.reviewer || '独立担当不明'}`;
     return [
       `- R${round.round} ${round.lens || '観点不明'} / ${reviewerFlow}`,
       `  - 前回の指摘: ${finding}`,
@@ -1185,6 +1222,7 @@ export function outstandingCodeReviewUnverified(state) {
         ...(Array.isArray(round.unverified) ? round.unverified : []),
         ...nativeRoundOutstandingUnverified(round),
         ...(missingPrimaryReviewRecord(round) ? ['DeepSeek一次確認の同一対象版記録なし'] : []),
+        ...(missingParallelPrimaryReviewRecord(round) ? [`${round.parallelPrimaryReviewer}並列一次確認の同一対象版記録なし`] : []),
       ])
       .map((item) => oneLine(item, 500))
       .filter(Boolean),
@@ -2529,11 +2567,15 @@ export function recordCodeReviewRound(root, task, request, {
     }
   }
   let primaryReviewRecord = request?.primaryReview || null;
+  let parallelPrimaryReviewRecord = request?.parallelPrimaryReview || null;
   let nativePrimaryVerified = null;
   const usesNativeReviewChain = activeReviewChainVersion === NATIVE_REVIEW_CHAIN_VERSION;
   // 2026-10-17 (Astra診断): 一次確認の要否はチェーンが宣言する観点集合から導く（観点キーや担当欄に依存しない）。
   const requiresDeepseekPrimary = (Array.isArray(activeLenses) ? activeLenses : [])
     .some((entry) => entry?.primaryReviewer === 'deepseek');
+  const chainParallelPrimaryReviewer = (Array.isArray(activeLenses) ? activeLenses : [])
+    .map(parallelPrimaryReviewerName)
+    .find(Boolean) || null;
   if (usesNativeReviewChain && requiresDeepseekPrimary) {
     // 2026-09-28 (T1-T5 stage 4B): the native chain re-verifies its primary reviewer from the real
     // Codex JSONL receipt against the live worktree (current:true) and the request-owned
@@ -2596,9 +2638,13 @@ export function recordCodeReviewRound(root, task, request, {
     if (unpinned) {
       throw new Error(`DeepSeek証跡が送信時の依頼記録と一致しません(${unpinned[0]})。別のレビューの証跡は記録しません`);
     }
+    // 2026-10-12 ユーザー決定: 一次確認(DeepSeek)の effort は採用表の値（既定 max。決定前は high）。
+    // ここだけ 'high' 固定のままだと、採用表が max のレーン（knowledge 等）で一次確認の記録が必ず落ちる。
+    // 許容範囲は verifyProviderEvidence が既に確定しているので、記録値はその証跡の値と一致することを求める
+    // （記録だけ max / 実証跡 high のような食い違いは通さない）。
     const validPrimary = primary?.status === 'completed'
       && ['deepseek-flash','deepseek-v4.1-flash'].includes(primary.model)
-      && primary.effort === 'high'
+      && primary.effort === verifiedPrimary.effort
       && primary.round === roundNumber
       && primary.lens === lens.key
       && primary.reviewHeadCommit === request?.reviewHeadCommit
@@ -2607,6 +2653,74 @@ export function recordCodeReviewRound(root, task, request, {
     if (!validPrimary) {
       throw new Error('DeepSeek一次確認の記録が無いか、レビュー対象版と一致しません');
     }
+  }
+  // 2026-10-14 (Sol 配線): 並列の一次担当が宣言された観点は、その担当の「実セッション証跡に
+  // 結び付いた」一次確認が無ければ round を記録しない。宣言だけ・自己申告・別 round/lens の流用は
+  // 通さない。DeepSeek と同じく、送信時の依頼記録(reviewBaseCommit/Head・approvalHash・manifestHash・
+  // contentHash)へ固定して照合する。ここが fail-closed の本体で、欠けたら未確認として通すのではなく止める。
+  // native連鎖(deepseek-native-cli-v1)も、依頼記録に並列一次確認(Sol)が載っている場合は
+  // 送信時の依頼記録へ固定して再検証する。依頼記録だけを書き換えて証跡を差し替えることを通さない。
+  // native は基点を review-scope pin(scopeHash)で持つため、reviewBaseCommit の照合だけは
+  // direct-API 連鎖に限る。
+  const parallelPrimaryReviewer = chainParallelPrimaryReviewer;
+  const parallelPrimaryReviewRequired = !usesNativeReviewChain || Boolean(request?.parallelPrimaryReview);
+  if (parallelPrimaryReviewRequired && parallelPrimaryReviewer) {
+    const expectedParallel = PARALLEL_PRIMARY_REVIEWERS[parallelPrimaryReviewer];
+    if (!expectedParallel) {
+      throw new Error(`並列の一次担当(${parallelPrimaryReviewer})の受理条件が未登録です`);
+    }
+    const parallel = request?.parallelPrimaryReview;
+    if (typeof optionalReviewEvidence?.solPrimaryEvidence !== 'function' || !parallel?.evidencePath || !parallel?.evidenceHash) {
+      throw new Error(`${parallelPrimaryReviewer}の並列一次確認の記録が無いか、実セッション証跡が指定されていません`);
+    }
+    const parallelReceiptBytes = readFileSync(parallel.evidencePath);
+    if (createHash('sha256').update(parallelReceiptBytes).digest('hex') !== parallel.evidenceHash) {
+      throw new Error(`${parallelPrimaryReviewer}の並列一次確認の証跡が送信後に変更されています`);
+    }
+    const verifiedParallel = optionalReviewEvidence.solPrimaryEvidence(root, parallel.evidencePath, {
+      task, round: roundNumber, lens: lens.key, current: false,
+    });
+    const pinnedParallel = [
+      ['reviewHeadCommit', request?.reviewHeadCommit],
+      ['reviewHeadCommit', parallel.reviewHeadCommit],
+      // native 連鎖の依頼は基点を review-scope pin(scopeHash)で持つため reviewBaseCommit を要求しない。
+      // direct-API 連鎖は DeepSeek とまったく同じく基点まで照合する。
+      ...(usesNativeReviewChain ? [] : [
+        ['reviewBaseCommit', request?.reviewBaseCommit],
+        ['reviewBaseCommit', parallel.reviewBaseCommit],
+      ]),
+      ...(typeof request?.approvalHash === 'string' && request.approvalHash ? [['approvalHash', request.approvalHash]] : []),
+      ...(typeof request?.manifestHash === 'string' && request.manifestHash ? [['manifestHash', request.manifestHash]] : []),
+      ['approvalHash', parallel.approvalHash],
+      ['manifestHash', parallel.manifestHash],
+    ];
+    const unpinnedParallel = pinnedParallel.find(([key, pinned]) => typeof pinned !== 'string' || !pinned || verifiedParallel?.[key] !== pinned);
+    if (unpinnedParallel) {
+      throw new Error(`${parallelPrimaryReviewer}の並列一次確認の証跡が送信時の依頼記録と一致しません(${unpinnedParallel[0]})`);
+    }
+    // 2つの一次確認が「同じ対象版」を見たことを、記録時に相互にも確かめる。
+    // HEAD が同じでも未コミット内容(manifest)や承認が違えば別の版なので、片方だけでは通さない。
+    if (primaryReviewRecord?.status === 'completed') {
+      for (const key of ['reviewHeadCommit', 'manifestHash', 'approvalHash']) {
+        const expectedValue = primaryReviewRecord[key];
+        if (typeof expectedValue === 'string' && expectedValue && verifiedParallel[key] !== expectedValue) {
+          throw new Error(`${parallelPrimaryReviewer}とDeepSeekの一次確認が同じ対象版ではありません(${key})`);
+        }
+      }
+    }
+    const validParallel = parallel?.status === 'completed'
+      && parallel.reviewer === parallelPrimaryReviewer
+      && parallel.model === expectedParallel.model
+      && parallel.effort === expectedParallel.effort
+      && parallel.round === roundNumber
+      && parallel.lens === lens.key
+      && parallel.reviewHeadCommit === request?.reviewHeadCommit
+      && typeof parallel.contentHash === 'string'
+      && parallel.contentHash === request?.contentHash;
+    if (!validParallel) {
+      throw new Error(`${parallelPrimaryReviewer}の並列一次確認の記録が無いか、レビュー対象版と一致しません`);
+    }
+    parallelPrimaryReviewRecord = { ...verifiedParallel, contentHash: parallel.contentHash };
   }
   const allowedFindingKinds = new Set([
     'spec', 'user_path', 'data_loss', 'regression', 'irreversible', 'other',
@@ -2642,7 +2756,13 @@ export function recordCodeReviewRound(root, task, request, {
     lens: lens?.key || null,
     reviewChainVersion: activeReviewChainVersion,
     primaryReviewer: lens?.primaryReviewer || null,
+    // native連鎖で依頼記録に並列一次確認(Sol)が載っていない旧来の記録は、既存の実receipt検証
+    // (nativePrimaryVerified)だけを保ち、handoffでは並列一次確認を主張しない。
+    parallelPrimaryReviewer: usesNativeReviewChain && !request?.parallelPrimaryReview
+      ? null
+      : (lens?.parallelPrimaryReviewer || null),
     primaryReview: primaryReviewRecord,
+    parallelPrimaryReview: parallelPrimaryReviewRecord,
     reviewer: lens?.reviewer || null,
     requestId,
     sentAt: request.sentAt || request.sendAttemptedAt || null,
@@ -2907,7 +3027,9 @@ export function recordCodeReviewRound(root, task, request, {
       state.codeReview.parentEscalation = {
         escalationId,
         sizeClass: state.codeReview.sizeClass,
-        effectiveMaxRounds,
+        // 親判断の通知テンプレート・判断照合・ai-approval-lib は `maxRounds` を読む。
+        // 項目名を変えると上限到達の親判断が登録できなくなるため、契約どおり `maxRounds` に保存する。
+        maxRounds: effectiveMaxRounds,
         lastRequestId: requestId,
         findingsDigest,
         findings,

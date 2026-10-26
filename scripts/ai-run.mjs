@@ -34,7 +34,7 @@ const root = process.cwd();
 {
   const ticketId = String(process.env.AI_REVIEW_CYCLE_TICKET || '').trim();
   if (!ticketId) {
-    console.error('✗ REVIEW_CYCLE_TICKET_REQUIRED: ai:run requires a reserved review-cycle ticket before side effects');
+    console.error('✗ REVIEW_CYCLE_TICKET_REQUIRED: このコマンドは事前の許可証（レビュー往復チケット）が無いと実行できません。呼び出し元から渡された許可証を設定してから、もう一度実行してください。');
     process.exit(2);
   }
   try {

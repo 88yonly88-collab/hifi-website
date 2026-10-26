@@ -149,6 +149,13 @@ const primaryEvidenceIndex = process.argv.indexOf('--primary-evidence');
 const primaryEvidencePath = primaryEvidenceIndex >= 0 ? process.argv[primaryEvidenceIndex + 1] : '';
 if (primaryReviewed) exitWithError('自己申告の --primary-reviewed は使用できません。実API結果に結び付く --primary-evidence <receipt.json> を指定してください。');
 if (primaryEvidenceIndex >= 0 && (!primaryEvidencePath || primaryEvidencePath.startsWith('--'))) exitWithError('--primary-evidence にはファイルが必要です');
+// 2026-10-14 (Sol 配線): 並列の一次担当(Sol)の実セッション証跡。DeepSeek と同じく、実送信する
+// レーンでは必須(欠けたら送らない)。自己申告のフラグは用意しない。
+const parallelPrimaryEvidenceIndex = process.argv.indexOf('--parallel-primary-evidence');
+const parallelPrimaryEvidencePath = parallelPrimaryEvidenceIndex >= 0 ? process.argv[parallelPrimaryEvidenceIndex + 1] : '';
+if (parallelPrimaryEvidenceIndex >= 0 && (!parallelPrimaryEvidencePath || parallelPrimaryEvidencePath.startsWith('--'))) {
+  exitWithError('--parallel-primary-evidence にはファイルが必要です');
+}
 const nativeScopeIndex = process.argv.indexOf('--native-scope');
 const nativeScopePath = nativeScopeIndex >= 0 ? process.argv[nativeScopeIndex + 1] : '';
 if (nativeScopeIndex >= 0 && (!nativeScopePath || nativeScopePath.startsWith('--'))) exitWithError('--native-scope にはファイルが必要です');
@@ -875,7 +882,7 @@ function deliveryPreflight(taskValue, laneValue) {
 
 // --- 1. current-task.json ---
 if (!existsSync(taskFile)) {
-  console.error('✗ .ai/current-task.json が見つかりません。先に Step 1 を実行してください。');
+  console.error('✗ 作業票（.ai/current-task.json）がありません。先に作業の登録（インストーラーまたは init-task）を実行してください。');
   process.exit(2);
 }
 let task;
@@ -1207,6 +1214,46 @@ if (primaryEvidencePath && !nativeChain) {
     primaryReview = primaryEvidence(root, primaryEvidencePath, {task,round:reviewPlan.round,lens:reviewPlan.lens.key});
   } catch (error) { exitWithError(`DEEPSEEK_PRIMARY_EVIDENCE_REJECTED: ${error.message}`); }
 }
+// 2026-10-14 (Sol 配線): 並列の一次担当。採用表は各巡で Sol(high) と DeepSeek(max) が並列に一次確認する。
+// 観点が並列担当を宣言しているレーンの実送信では、その実セッション証跡が無ければ送らない(fail-closed)。
+const parallelPrimaryReviewer = typeof reviewPlan?.lens?.parallelPrimaryReviewer === 'string'
+  ? reviewPlan.lens.parallelPrimaryReviewer
+  : '';
+const parallelPrimaryReviewRequired = Boolean(parallelPrimaryReviewer);
+let parallelPrimaryReview = parallelPrimaryReviewRequired
+  ? { status: 'not-recorded', reviewer: parallelPrimaryReviewer, round: Number.isInteger(reviewPlan?.round) ? reviewPlan.round : null, lens: reviewPlan?.lens?.key || null }
+  : { status: 'not-applicable' };
+if (parallelPrimaryEvidencePath && !parallelPrimaryReviewRequired) {
+  exitWithError(`${parallelPrimaryReviewer || '並列一次担当'}が宣言されていないレーンです。--parallel-primary-evidence を外してください。`);
+}
+// 2026-10-15 (native 送受信の一致): 受領側(ai-review-rounds-lib.mjs)は native 連鎖でも
+// 並列一次担当(Sol)の実証跡を必須にしている。送信側だけが native を免除すると、外部レビュアーを
+// 動かした後(受領)で初めて落ちて費用と時間を失う。そこで送信側も同じ必須条件にし、何も動かす前に止める。
+if (send && parallelPrimaryReviewRequired && !parallelPrimaryEvidencePath) {
+  if (nativeChain) {
+    // native の Sol 証跡 producer は、この送信と同じ --native-scope/--native-scope-hash を検証して
+    // 同じ対象版の receipt を作る。native の queue/scope 要件は変えず、欠けている証跡の作り方だけを示す。
+    exitWithError(
+      `✗ ${parallelPrimaryReviewer.toUpperCase()}_PARALLEL_PRIMARY_REVIEW_REQUIRED: 並列の一次担当(${parallelPrimaryReviewer})による同じ対象版の一次確認記録がありません。` +
+      ` 先に node scripts/sol-primary-review.mjs --native-scope <scope.json> --native-scope-hash <scopeHash> --execute で Sol の実セッション証跡を作り、` +
+      `生成receiptを ${aiCmd('review-send', '--yes --native-scope <scope.json> --native-scope-hash <scopeHash> --parallel-primary-evidence <receipt.json>', { root })} へ渡してください(native の queue/scope 要件は変わりません)。`,
+    );
+  }
+  exitWithError(
+    `✗ ${parallelPrimaryReviewer.toUpperCase()}_PARALLEL_PRIMARY_REVIEW_REQUIRED: 並列の一次担当(${parallelPrimaryReviewer})による同じ対象版の一次確認記録がありません。` +
+    ` node scripts/sol-primary-review.mjs ${reviewPlan.round} --execute で確認し、生成receiptを ${aiCmd('review-send', '--yes --parallel-primary-evidence <receipt.json>', { root })} へ渡してください。`,
+  );
+}
+if (parallelPrimaryEvidencePath) {
+  try {
+    const evidence = await import('./review-evidence.mjs');
+    if (parallelPrimaryReviewer === 'sol') {
+      parallelPrimaryReview = evidence.solPrimaryEvidenceAccepted(root, parallelPrimaryEvidencePath, {task,round:reviewPlan.round,lens:reviewPlan.lens.key});
+    } else {
+      exitWithError(`未対応の並列一次担当です: ${parallelPrimaryReviewer}`);
+    }
+  } catch (error) { exitWithError(`PARALLEL_PRIMARY_EVIDENCE_REJECTED: ${error.message}`); }
+}
 const approvalBody = readFileSync(approvalResult.path, 'utf8').trim();
 
 // --- 7-9. git 情報（秘密除外・切詰） ---
@@ -1214,6 +1261,11 @@ let reviewDiffScope;
 try {
   reviewDiffScope = resolveReviewDiffScope(root, { task });
   if (primaryReviewRequired && !nativeChain && send && (primaryReview.reviewBaseCommit !== reviewDiffScope.baseCommit || primaryReview.reviewHeadCommit !== reviewDiffScope.headCommit)) throw new Error('DeepSeek証跡のレビュー基点/HEADが依頼と一致しません');
+  // 2026-10-14 (Sol 配線): 並列の一次担当も DeepSeek と同じ対象版・基点でなければ送らない。
+  if (parallelPrimaryReviewRequired && !nativeChain && send && parallelPrimaryReview.status === 'completed'
+    && (parallelPrimaryReview.reviewBaseCommit !== reviewDiffScope.baseCommit || parallelPrimaryReview.reviewHeadCommit !== reviewDiffScope.headCommit)) {
+    throw new Error(`${parallelPrimaryReviewer}証跡のレビュー基点/HEADが依頼と一致しません`);
+  }
 } catch (error) {
   exitWithError(`✗ レビュー対象の基点を判別できないため、依頼を作成・送信しません: ${error.message}`);
 }
@@ -2129,6 +2181,13 @@ const state = {
     reviewHeadCommit: primaryReview.reviewHeadCommit || reviewDiffScope.headCommit,
     contentHash,
   },
+  parallelPrimaryReview: parallelPrimaryReviewRequired
+    ? {
+        ...parallelPrimaryReview,
+        reviewHeadCommit: parallelPrimaryReview.reviewHeadCommit || reviewDiffScope.headCommit,
+        contentHash,
+      }
+    : { status: 'not-applicable' },
   ...(nativeReview
     ? { reviewChainVersion: NATIVE_REVIEW_CHAIN_VERSION, nativeReview, nativeScopeFile }
     : {}),
@@ -2259,7 +2318,7 @@ if (!send) {
   console.log('');
   console.log(`→ 送信するには: ${aiCmd('review-send', nativeChain
     ? '--yes --native-scope <scope.json> --native-scope-hash <scopeHash> --native-reviewed-path <path> [--native-ignored-pathspec <spec>]'
-    : primaryReviewRequired ? '--yes --primary-evidence <receipt.json>' : '--yes', { root })}`);
+    : `${primaryReviewRequired ? '--yes --primary-evidence <receipt.json>' : '--yes'}${parallelPrimaryReviewRequired ? ' --parallel-primary-evidence <sol-receipt.json>' : ''}`, { root })}`);
   process.exit(0);
 }
 

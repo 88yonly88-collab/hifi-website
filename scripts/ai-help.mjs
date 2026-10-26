@@ -203,6 +203,9 @@ console.log('       → 身元・重複検査は維持し、承認/E2E/完了検
 console.log('         通常ゲートを通せる時は拒否される。');
 console.log(`  ・未コミットの例外許可   → ${aiCmd('complete', '--allow-uncommitted "<理由>"')}`);
 console.log('       → 実装ファイルを未コミットのまま確認するときだけ。理由と対象一覧を完了記録へ残す。');
+console.log(`  ・成果物の4点記録を必須化 → DELIVERY_REQUIRED=1 ${aiCmd('complete')}（記録は --delivery-record <JSON>）`);
+console.log('       → 既定は記録なしを警告のみ。必須時は built/installed/verify_cmd/verify_output の記録が無いと完了できない（exit 1）。');
+console.log('         正本: rules/delivery-installed.md');
 console.log(`  ・特に難しい問題を相談   → ${aiCmd('consult')}（GPT-5.5 Proに自動相談。--yes 付きで従量課金）`);
 // ai:docs-task はknowledge等の一部リポジトリだけに存在するため、案内も存在するときだけ出す
 if (readJsonFile(join(root, 'package.json')).data?.scripts?.['ai:docs-task']) {
