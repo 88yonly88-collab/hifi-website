@@ -26,14 +26,113 @@ const LIMITED_REVIEW_STEPS = ['deepseek','sol','opus'];
 const STEP_ORDER = { deepseek: 0, sol: 1, repair: 2, practical: 3, opus: 4, 'astra-diagnosis': 5 };
 const STEP_MODELS = {
   // 2026-10-13: deepseek step = 一次確認。利用者決定(2026-10-12「レビューだけMax」)どおり max。
-  // 実装(repair/実装レーン)は high のまま。sol/opus/astra も変更しない。
+  // 実装(repair/実装レーン)は high のまま。
+  // 2026-10-14: sol step = 並列の一次確認。採用表(config/accepted-model-decisions.json
+  // revision 20261013.4 / 規則 code-review-three-rounds.md 現行節)は gpt-6.1-sol / high。
+  // medium のままだと採用表と食い違い、Sol の一次確認が決定と違う effort で走る。
   deepseek: { model: 'deepseek-flash', effort: 'max', adapter: 'responses-ds', provider: 'responses-ds' },
-  sol: { model: 'gpt-6.1-sol', effort: 'medium', adapter: 'pro-sol', provider: 'pro-sol' },
+  sol: { model: 'gpt-6.1-sol', effort: 'high', adapter: 'pro-sol', provider: 'pro-sol' },
   opus: { model: 'claude-opus-5-5', effort: 'high', adapter: 'max-opus', provider: 'max-opus' },
   astra: { model: 'gpt-6-astra', effort: 'high', adapter: 'astra', provider: 'astra' },
   practical: { model: 'practical-runner', effort: 'high', adapter: 'practical', provider: 'practical' },
   repair: { model: 'repair-runner', effort: 'high', adapter: 'repair', provider: 'repair' },
 };
+// 2026-10-27 利用者決定: レビュー連鎖 = DeepSeek2・SOL2・Opus2＋Astra1（最大7呼び出し）。
+// 順序は既存構造を採用する（各巡 = DeepSeek+SOL並列 → 実用確認 → Opus、2巡）。
+// 実用確認が合格したら、その巡のOpusも次巡も実行せず終了する（早期終了）。
+// Astraは2巡とも未解決（実用阻害つきの証拠あるブロッカー）のときだけ1回、原因診断として実行する。
+// 「呼び出し」はレビューAIへの呼び出しだけを数える（実用ランナーと修復は含めない）。
+export const REVIEW_CHAIN_PLAN_VERSION = 'ds2-sol2-opus2-astra1.v1';
+export const REVIEW_CHAIN_PER_ROUND = ['deepseek', 'sol', 'opus'];
+export const REVIEW_CHAIN_MODEL_STEPS = ['deepseek', 'sol', 'opus', 'astra-diagnosis'];
+export const REVIEW_CHAIN_MAX_CALLS = 7;
+export const REVIEW_CHAIN_EARLY_EXIT = 'practical-pass';
+export function reviewChainPlan({ rounds = MAX_NORMAL_CYCLE, astra = true } = {}) {
+  const r = Number(rounds);
+  if (!Number.isInteger(r) || r < 1) throw new Error('REVIEW_CHAIN_ROUNDS_INVALID');
+  if (typeof astra !== 'boolean') throw new Error('REVIEW_CHAIN_ASTRA_INVALID');
+  if (astra && r < MAX_NORMAL_CYCLE) throw new Error('REVIEW_CHAIN_ASTRA_REQUIRES_TWO_ROUNDS');
+  const steps = [];
+  for (let round = 1; round <= r; round += 1) {
+    for (const step of REVIEW_CHAIN_PER_ROUND) steps.push({ round, cycle: round, step });
+  }
+  if (astra) steps.push({ round: r + 1, cycle: ASTRA_CYCLE, step: 'astra-diagnosis' });
+  if (steps.length > REVIEW_CHAIN_MAX_CALLS) throw new Error(`REVIEW_CHAIN_MAX_CALLS_EXCEEDED: ${steps.length} > ${REVIEW_CHAIN_MAX_CALLS}`);
+  return { ok: true, version: REVIEW_CHAIN_PLAN_VERSION, rounds: r, astra,
+    maxCalls: REVIEW_CHAIN_MAX_CALLS, callCount: steps.length, earlyExit: REVIEW_CHAIN_EARLY_EXIT,
+    steps, sequence: steps.map((x) => x.step) };
+}
+// 利用者・呼び出し元が明示した呼び出し列を検証する。上限超過・Astraの位置/回数・巡の並びを固定する。
+export function assertReviewChainCalls(calls) {
+  if (!Array.isArray(calls) || calls.length === 0) throw new Error('REVIEW_CHAIN_CALLS_REQUIRED');
+  if (calls.length > REVIEW_CHAIN_MAX_CALLS) throw new Error(`REVIEW_CHAIN_MAX_CALLS_EXCEEDED: ${calls.length} > ${REVIEW_CHAIN_MAX_CALLS}`);
+  const normalized = calls.map((x) => (typeof x === 'string' ? x : x?.step));
+  const firstAstra = normalized.indexOf('astra-diagnosis');
+  if (firstAstra !== -1 && firstAstra !== normalized.length - 1) throw new Error('REVIEW_CHAIN_ASTRA_LAST_REQUIRED');
+  if (firstAstra !== -1 && firstAstra !== normalized.lastIndexOf('astra-diagnosis')) throw new Error('REVIEW_CHAIN_ASTRA_MAX_ONE');
+  const reviewCalls = firstAstra === -1 ? normalized : normalized.slice(0, firstAstra);
+  if (reviewCalls.length === 0 || reviewCalls.length % REVIEW_CHAIN_PER_ROUND.length !== 0) throw new Error('REVIEW_CHAIN_ROUND_INCOMPLETE');
+  const rounds = reviewCalls.length / REVIEW_CHAIN_PER_ROUND.length;
+  if (rounds > MAX_NORMAL_CYCLE) throw new Error('REVIEW_CHAIN_ROUNDS_EXCEEDED');
+  const expected = reviewChainPlan({ rounds, astra: firstAstra !== -1 });
+  if (canonicalJson(normalized) !== canonicalJson(expected.sequence)) throw new Error('REVIEW_CHAIN_ORDER_INVALID');
+  return expected;
+}
+function reviewChainReservedCalls(reg) {
+  return (reg?.attempts || []).filter((a) => a?.state === 'reserved' && a.limited !== true && REVIEW_CHAIN_MODEL_STEPS.includes(a.step)).length;
+}
+function assertReviewChainCallBudget(reg) {
+  if (reviewChainReservedCalls(reg) >= REVIEW_CHAIN_MAX_CALLS) throw new Error(`REVIEW_CHAIN_MAX_CALLS_EXCEEDED: ${REVIEW_CHAIN_MAX_CALLS}`);
+}
+function reviewChainRecordedSteps(reg) {
+  const used = [];
+  for (const c of reg?.cycles || []) {
+    for (const step of REVIEW_CHAIN_PER_ROUND) {
+      const t = c.steps?.[step];
+      if (t && ['recorded', 'unknown'].includes(t.status)) used.push({ round: c.cycle, cycle: c.cycle, step, status: t.status });
+    }
+    const astra = c.steps?.['astra-diagnosis'];
+    if (astra && ['recorded', 'unknown'].includes(astra.status)) used.push({ round: c.cycle, cycle: c.cycle, step: 'astra-diagnosis', status: astra.status });
+  }
+  return used;
+}
+export function reviewChainNextSteps(reg) {
+  if (!reg) return [];
+  if (reg.halted || reg.final?.status === 'stopped_final_pass') return [];
+  const cycles = Array.isArray(reg.cycles) ? reg.cycles : [];
+  if (cycles.length === 0) return ['deepseek', 'sol'];
+  const last = cycles[cycles.length - 1];
+  if (last.cycle > MAX_NORMAL_CYCLE || last.steps?.['astra-diagnosis']) {
+    return last.steps?.['astra-diagnosis'] ? [] : ['astra-diagnosis'];
+  }
+  const steps = last.steps || {};
+  if (!steps.deepseek || !steps.sol) {
+    const next = [];
+    if (!steps.deepseek) next.push('deepseek');
+    if (!steps.sol) next.push('sol');
+    return next;
+  }
+  if (!last.practical) return [];
+  if (last.practical.status === 'passed') return [];
+  if (!steps.opus) return ['opus'];
+  if (last.cycle < MAX_NORMAL_CYCLE) return ['deepseek', 'sol'];
+  if (completedBlockedCycles(reg).length >= 2) return ['astra-diagnosis'];
+  return [];
+}
+export function inspectReviewChain(root) {
+  const reg = loadRegistry(root, { mode: 'display' });
+  const planned = reviewChainPlan();
+  const base = { version: REVIEW_CHAIN_PLAN_VERSION, plan: planned.sequence, rounds: planned.rounds,
+    maxCalls: REVIEW_CHAIN_MAX_CALLS, plannedCalls: planned.callCount, earlyExitRule: REVIEW_CHAIN_EARLY_EXIT };
+  if (!reg) return { ok: false, status: 'unconfirmed', reason: 'REVIEW_CYCLE_PURPOSE_UNBOUND', ...base, usedCalls: 0, remainingCalls: planned.callCount, used: [], next: [], earlyExit: false };
+  const used = reviewChainRecordedSteps(reg);
+  const terminated = reg.halted === true || reg.final?.status === 'stopped_final_pass';
+  const earlyExit = reg.final?.status === 'stopped_final_pass' && reg.final?.earlyExit === true;
+  return { ok: true, status: currentCycleStatus(reg), ...base, usedCalls: used.length,
+    remainingCalls: terminated ? 0 : Math.max(0, planned.callCount - used.length),
+    reservedCalls: reviewChainReservedCalls(reg), used, next: reviewChainNextSteps(reg), earlyExit,
+    final: reg.final || null, halted: reg.halted === true, haltedReason: reg.haltedReason || null };
+}
 function extractResponsesText(r) {
   if (!r) return '';
   const root = r.response && typeof r.response === 'object' ? r.response : r;
@@ -98,7 +197,7 @@ const ADAPTERS = {
     },
   },
   'pro-sol': {
-    provider: 'pro-sol', model: 'gpt-6.1-sol', effort: 'medium',
+    provider: 'pro-sol', model: 'gpt-6.1-sol', effort: 'high',
     extract: (r, ctx) => {
       const text = String(ctx?.text || '');
       let model; let effort; let sessionId; let lastAssistant = null; let lastUsage = null;
@@ -565,6 +664,7 @@ export function reserveStep(root, { step, cycle, candidateHash, requestId, model
       if (c.practical && step === 'repair') throw new Error('REVIEW_CYCLE_PRACTICAL_CANDIDATE_CLOSED');
       assertStepDependencies(c,step); resolveCycleCandidateHash(c,step,candidateHash);
     }
+    if (!limited) assertReviewChainCallBudget(reg);
     if (taskId !== undefined && taskId !== reg.binding.taskId) throw new Error('REVIEW_CYCLE_TASK_MISMATCH');
     assertNoUnknownResend(reg,{step,cycle:cyc,candidateHash});
     const spec=stepSpec(step); const ticketId=randomUUID();
@@ -837,6 +937,8 @@ export function recordPracticalOutcome(root, opts) {
     if(!lines.length)throw new Error('REVIEW_CYCLE_PRACTICAL_EVIDENCE_EMPTY');
     const derived=exit===0&&!lines.some(x=>x.startsWith('not ok'))?'passed':'failed';
     if(derived!==opts.status)throw new Error('REVIEW_CYCLE_PRACTICAL_STATUS_CONTRADICTION');
+    // 実用合格でも、証拠つきのP0/P1ブロッカーが未解決なら完了にしない（未解決を合格へ置き換えない）。
+    if(!limited&&derived==='passed'&&(c.blockers||[]).some(b=>['P0','P1'].includes(String(b.severity))&&b.actualTestResult===true))throw new Error('REVIEW_CYCLE_PROVEN_BLOCKER_UNRESOLVED');
     if (opts.nonblocking !== undefined && (!Array.isArray(opts.nonblocking) || opts.nonblocking.some(x => !x || !['P2','P3'].includes(x.severity)))) throw new Error('REVIEW_CYCLE_NONBLOCKING_INVALID');
     st.status='recorded';c.practical={status:derived,candidateHash:opts.candidateHash,rawId:v.rawId,wrapperHash:opts.wrapperHash,nonblocking:opts.nonblocking || []};
     if(limited && c.scope === 'limited-formal-review'){
@@ -848,10 +950,15 @@ export function recordPracticalOutcome(root, opts) {
       c.final={status:derived==='passed'?'stopped_final_pass':'blocked',candidateHash:opts.candidateHash,kind:'explicit_free_local_acceptance'};
       if(derived==='passed')reg.final={...c.final,limited:true,grantId:c.grantId};
       else {reg.halted=true;reg.haltedReason='limited_tests_failed';c.revoked=true;}
-    } else c.status='practical_'+derived;
-    reg.history.push({event:'practical_outcome',cycle,status:derived,candidateHash:opts.candidateHash,at:new Date().toISOString()});saveRegistry(root,reg);
+    } else {
+      c.status='practical_'+derived;
+      // 早期終了: 実用確認が合格したら、その巡のOpusも次巡も実行せず終了する（追加往復を作らない）。
+      if (derived === 'passed') reg.final={status:'stopped_final_pass',cycle,candidateHash:opts.candidateHash,nonblocking:opts.nonblocking || [],earlyExit:true,basis:REVIEW_CHAIN_EARLY_EXIT};
+    }
+    reg.history.push({event:'practical_outcome',cycle,status:derived,candidateHash:opts.candidateHash,earlyExit:!limited&&derived==='passed',at:new Date().toISOString()});saveRegistry(root,reg);
     const formalPending = limited && c.scope === 'limited-formal-review' && derived === 'passed';
-    return{ok:true,status:derived,stopped: limited && !formalPending};
+    const earlyExit = !limited && derived === 'passed';
+    return{ok:true,status:derived,stopped: limited ? !formalPending : earlyExit,earlyExit};
   });
 }
 export function recordBlocker(root, { cycle, candidateHash, severity, summary, proofPath, proofHash, wrapperPath, wrapperHash, step = 'practical', actualTestResult = false }) { const sev = String(severity || ''); if (!/^P[0-3]$/.test(sev)) throw new Error('REVIEW_CYCLE_BLOCKER_SEVERITY_INVALID'); const cyc = assertCycleRange(cycle, step); const h = String(candidateHash || ''); return withLock(root, () => { const reg = loadRegistry(root, { mode: 'dispatch' }); if (reg.final?.status === 'stopped_final_pass') throw new Error('REVIEW_CYCLE_PRACTICAL_PASS_STOP'); if (reg.halted) throw new Error('REVIEW_CYCLE_HALTED'); const c = currentCycle(reg, cyc, step); validateWrapper(root, { wrapperPath, wrapperHash, receiptPath: proofPath, receiptHash: proofHash, step, cycle: cyc, purposeId: reg.activePurposeId, candidateHash: h, requestId: null, taskId: reg.binding?.taskId }); const b = { id: `b${cyc}-${c.blockers.length + 1}`, step, severity: sev, summary: String(summary || ''), actualTestResult: actualTestResult === true, candidateHash: h, proofPath: String(proofPath), proofHash, wrapperPath: String(wrapperPath), wrapperHash, at: new Date().toISOString() }; c.blockers.push(b); if (c.status === 'in_progress') c.status = 'blocked'; reg.history.push({ at: new Date().toISOString(), event: 'blocker_recorded', cycle: cyc, blockerId: b.id, severity: sev }); saveRegistry(root, reg); return { ok: true, blockerId: b.id }; }); }
@@ -878,7 +985,7 @@ export function requestAstraRootDiagnosis(root, opts) {
   });
 }
 export function haltAfterAstraUnresolved(root, { cycle, reason, userSource } = {}) { return withLock(root, () => { const reg = loadRegistry(root, { mode: 'dispatch' }); if (!reg.cycles.some((c) => c.steps?.['astra-diagnosis']?.status === 'recorded')) throw new Error('REVIEW_CYCLE_ASTRA_DIAGNOSIS_REQUIRED'); if (reg.halted && reg.haltedReason === 'astra_diagnosis_unresolved') return { ok: true, halted: true, already: true }; reg.halted = true; reg.haltedReason = String(reason || 'astra_diagnosis_unresolved'); reg.history.push({ at: new Date().toISOString(), event: 'halt_after_astra_unresolved', cycle: cycle || null, userSourceHash: userSource ? sha256(String(userSource)) : null }); saveRegistry(root, reg); return { ok: true, halted: true }; }); }
-export function inspectCycle(root) { const reg = loadRegistry(root, { mode: 'display' }); if (!reg) return { status: 'unconfirmed', reason: 'REVIEW_CYCLE_PURPOSE_UNBOUND' }; const formal = activeFormalGrant(reg); return { status: currentCycleStatus(reg), purposeId: reg.activePurposeId, cycleCount: Math.max(reg.cycles.length, retainedCounts(reg).normal), retainedHistory: reg.retainedHistory || null, retainedFinal: reg.retainedFinal || null, attempts: reg.attempts.length, unknown: reg.unknown.length, cycles: reg.cycles.map((c) => ({ cycle: c.cycle, status: c.status, steps: Object.fromEntries(Object.entries(c.steps).map(([k, v]) => [k, v.status])), practical: c.practical?.status || null, blockers: c.blockers.length })), final: reg.final, formalFinal: formal?.final || null, halted: reg.halted, haltedReason: reg.haltedReason, restartCount: reg.restartCount, limitedGrant: reg.limitedGrant ? { approvalHash: reg.limitedGrant.approvalHash, consumed: reg.limitedGrant.consumed, revoked: reg.limitedGrant.revoked, final: reg.limitedGrant.final || null } : null }; }
+export function inspectCycle(root) { const reg = loadRegistry(root, { mode: 'display' }); if (!reg) return { status: 'unconfirmed', reason: 'REVIEW_CYCLE_PURPOSE_UNBOUND', chain: { version: REVIEW_CHAIN_PLAN_VERSION, plan: reviewChainPlan().sequence, maxCalls: REVIEW_CHAIN_MAX_CALLS } }; const formal = activeFormalGrant(reg); return { status: currentCycleStatus(reg), purposeId: reg.activePurposeId, cycleCount: Math.max(reg.cycles.length, retainedCounts(reg).normal), retainedHistory: reg.retainedHistory || null, retainedFinal: reg.retainedFinal || null, attempts: reg.attempts.length, unknown: reg.unknown.length, cycles: reg.cycles.map((c) => ({ cycle: c.cycle, status: c.status, steps: Object.fromEntries(Object.entries(c.steps).map(([k, v]) => [k, v.status])), practical: c.practical?.status || null, blockers: c.blockers.length })), final: reg.final, formalFinal: formal?.final || null, halted: reg.halted, haltedReason: reg.haltedReason, restartCount: reg.restartCount, chain: { version: REVIEW_CHAIN_PLAN_VERSION, plan: reviewChainPlan().sequence, maxCalls: REVIEW_CHAIN_MAX_CALLS, usedCalls: reviewChainRecordedSteps(reg).length, next: reviewChainNextSteps(reg), earlyExit: reg.final?.status === 'stopped_final_pass' && reg.final?.earlyExit === true }, limitedGrant: reg.limitedGrant ? { approvalHash: reg.limitedGrant.approvalHash, consumed: reg.limitedGrant.consumed, revoked: reg.limitedGrant.revoked, final: reg.limitedGrant.final || null } : null }; }
 export function assertDispatchAllowed(root, { stage, mode = 'dispatch', candidateHash } = {}) { const auth = authorizeNextStep(root, { kind: 'send', stage: stage || '', mode, candidateHash }); return { ok: true, stage: stage || '', purposeId: auth.purposeId, limited: auth.limited === true }; }
 export function cmgbIntakeCriterionPresent(root, task) {
   const resolvedTask = task || (existsSync(join(root, '.ai', 'current-task.json')) ? readJson(join(root, '.ai', 'current-task.json')) : null);
@@ -893,13 +1000,24 @@ export function cmgbIntakeCriterionPresent(root, task) {
   const criteria = Array.isArray(result.approval.completionCriteria) ? result.approval.completionCriteria : [];
   return criteria.some((criterion) => typeof criterion === 'string' && criterion.includes('cmgbExistingReceiptIntake:'));
 }
-export function assertCompletionAllowed(root, task) {
+export function assertCompletionAllowed(root, task, { declaration } = {}) {
   if (cmgbIntakeCriterionPresent(root, task)) {
     if (!cmgbIntakeModule) {
       throw new Error(`CMGB_INTAKE_HELPER_UNAVAILABLE: ${cmgbIntakeLoadError?.message ?? 'cmgb-existing-receipt-intake.mjs unavailable'}`);
     }
     const nativeIntake = cmgbIntakeModule.verifyCmgbExistingReceiptCompletion(root, task);
     if (nativeIntake) return nativeIntake;
+  }
+  // 2026-10-13 移行条件: review-cycle 機構をまだ導入していない repo(登録ファイルが無い)は、
+  // 宣言の review_status と e2e_status が passed のときだけ、従来のレビュー証跡で完了できる。
+  // 登録ファイルが在る repo は下の厳格な判定(stopped_final_pass 必須)をそのまま使う=緩めない。
+  if (!reviewCycleRegistryExists(root)) {
+    const reviewStatus = String(declaration?.review_status || '').trim().toLowerCase();
+    const e2eStatus = String(declaration?.e2e_status || '').trim().toLowerCase();
+    if (reviewStatus === 'passed' && e2eStatus === 'passed') {
+      return { ok: true, migration: 'review-cycle-not-introduced', basis: 'declaration review_status/e2e_status passed' };
+    }
+    throw new Error('REVIEW_CYCLE_PURPOSE_UNBOUND');
   }
   const reg = loadRegistry(root, { mode: 'completion' });
   const formal = activeFormalGrant(reg);

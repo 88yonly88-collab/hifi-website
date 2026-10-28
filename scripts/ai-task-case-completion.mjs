@@ -1,6 +1,8 @@
 #!/usr/bin/env node
-import { existsSync, mkdirSync, rmdirSync, rmSync } from 'node:fs';
-import { relative, resolve, sep } from 'node:path';
+import { spawnSync } from 'node:child_process';
+import { existsSync, mkdirSync, readFileSync, rmdirSync, rmSync } from 'node:fs';
+import { basename, dirname, isAbsolute, relative, resolve, sep } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { atomicWriteJson, ensureRegularFile, readJson, resolveRepoPath, safeId } from './ai-e2e-lib.mjs';
 import { CASE_BINDING_APPROVAL_KIND, loadState, planHashOfPlan, readPlan, revalidateCollectedResult, resolveCaseDir, sha256File, validateApproval, validateEvidenceManifest, withCaseLock } from './ai-task-continuity-lib.mjs';
 import { validateCaseReviewRawEvidence } from './ai-task-case-review-evidence.mjs';
@@ -10,6 +12,150 @@ function canonicalJson(value) {
   if (Array.isArray(value)) return `[${value.map(canonicalJson).join(',')}]`;
   if (value && typeof value === 'object') return `{${Object.keys(value).sort().map((key) => `${JSON.stringify(key)}:${canonicalJson(value[key])}`).join(',')}}`;
   return JSON.stringify(value);
+}
+
+// --- 完了の経路でも関所を見る(W4b) -----------------------------------------
+// 本番反映しないレーンは deploy-gate.sh を通らないので、これまで関所に見られなかった。
+// ここでは関所そのもの(scripts/review-evidence-gate.mjs)を呼ぶだけで、新しい台帳・新しい判定器は作らない。
+// 止めるかどうかも関所の契約をそのまま使う: 関所は report_only では判定が「止める」でも必ず終了状態 0 で、
+// enforce のときだけ止める(1)/未確認(2)で 0 以外になる。つまり 0 以外のときだけ完了を止める。
+const REVIEW_EVIDENCE_GATE_COMPLETION_PREFIX = 'REVIEW_EVIDENCE_GATE_COMPLETION';
+const REVIEW_EVIDENCE_GATE_SCRIPTS_DIR = dirname(fileURLToPath(import.meta.url));
+function reviewEvidenceGateScriptPath() { return resolve(REVIEW_EVIDENCE_GATE_SCRIPTS_DIR, 'review-evidence-gate.mjs'); }
+function reviewEvidenceGateConfigPath() {
+  return process.env.REVIEW_EVIDENCE_GATE_CONFIG
+    || resolve(REVIEW_EVIDENCE_GATE_SCRIPTS_DIR, '..', 'config', 'review-evidence-gate.json');
+}
+function readJsonIfPossible(path) {
+  try { return JSON.parse(readFileSync(path, 'utf8')); } catch { return null; }
+}
+// 設定(config/review-evidence-gate.json)の repos から、この repo の取り込み先の先端(baseRef)を引く。
+// 見つけ方は関所の resolveRepo と同じ(絶対パスの一致を先に、次にディレクトリ名の一致)。
+function reviewEvidenceGateBaseRef(root) {
+  const config = readJsonIfPossible(reviewEvidenceGateConfigPath());
+  const repos = Array.isArray(config?.repos) ? config.repos : [];
+  const target = resolve(root);
+  const directory = basename(target);
+  const candidatesOf = (repo) => [repo?.name, ...(Array.isArray(repo?.paths) ? repo.paths : [])]
+    .filter((value) => typeof value === 'string' && value);
+  for (const repo of repos) {
+    for (const candidate of candidatesOf(repo)) {
+      if (isAbsolute(candidate) && (resolve(candidate) === target || candidate === target)) return repo.baseRef || null;
+    }
+  }
+  for (const repo of repos) {
+    for (const candidate of candidatesOf(repo)) {
+      if (!isAbsolute(candidate) && candidate === directory) return repo.baseRef || null;
+    }
+  }
+  return null;
+}
+function oneLineText(value, max = 200) {
+  const text = String(value ?? '').replace(/\s+/gu, ' ').trim();
+  return text.length > max ? `${text.slice(0, max)}…` : text;
+}
+// 関所は --json でも、enforce の印(REVIEW_EVIDENCE_GATE_ENFORCE_MARKER=...)や
+// ディレクトリ名の一致(REVIEW_EVIDENCE_GATE_REPO_MATCH=...)を JSON の前に 1 行出す。
+// 先頭から JSON.parse せず、JSON の始まりの行(単独の "{")から最後までを読む。
+function parseGateJson(stdout) {
+  const lines = String(stdout ?? '').split('\n');
+  const start = lines.findIndex((line) => line.trim() === '{');
+  if (start < 0) return null;
+  try { return JSON.parse(lines.slice(start).join('\n')); } catch { return null; }
+}
+// 関所の判定を 1 行にまとめる(出力に残す根拠)。判定が読めないときは available=0 として残す。
+export function evaluateCompletionReviewEvidenceGate(root, options = {}) {
+  const spawn = typeof options.spawn === 'function' ? options.spawn : spawnSync;
+  const repoRoot = resolve(root);
+  const baseRef = reviewEvidenceGateBaseRef(repoRoot) || 'HEAD';
+  const range = `${baseRef}..HEAD`;
+  const args = [reviewEvidenceGateScriptPath(), 'check', '--repo', repoRoot, '--range', range, '--json'];
+  let result;
+  try {
+    result = spawn(process.execPath, args, { encoding: 'utf8', maxBuffer: 32 * 1024 * 1024, timeout: 180000 });
+  } catch (error) {
+    result = { status: null, stdout: '', stderr: '', error };
+  }
+  const stdout = typeof result?.stdout === 'string' ? result.stdout : '';
+  const stderr = typeof result?.stderr === 'string' ? result.stderr : '';
+  const payload = parseGateJson(stdout);
+  const available = payload !== null && typeof payload === 'object';
+  const status = typeof result?.status === 'number' ? result.status : null;
+  const judgment = available ? String(payload.judgment || 'unknown') : 'unavailable';
+  const mode = available ? String(payload.mode || 'unknown') : 'unknown';
+  // 関所の契約のまま: 0 以外の終了状態のときだけ止める(report_only では関所が必ず 0 で終わる)。
+  const blocked = available && status !== null && status !== 0;
+  const counts = available && payload.counts && typeof payload.counts === 'object' ? payload.counts : {};
+  const problems = available && Array.isArray(payload.units)
+    ? payload.units.flatMap((unit) => (Array.isArray(unit?.detail?.problems) ? unit.detail.problems : []))
+    : [];
+  // 区分の数え方は関所の本文と同じ(snake_case の区分名)。
+  const countPass = (counts.pass ?? 0) + (counts.exempt_user_quote ?? 0) + (counts.parent_decision ?? 0);
+  const countStop = (counts.missing_record ?? 0) + (counts.missing_rounds ?? 0) + (counts.findings_verdict ?? 0)
+    + (counts.outcome_unclosed ?? 0) + (counts.tail_unreviewed ?? 0);
+  const countUnverified = (counts.unbound_record ?? 0) + (counts.unverified_record ?? 0);
+  // 対象なし・読めないときの units は commit を持たない入れ物なので、commit のある単位だけを対象数にする。
+  const unitCount = available && Array.isArray(payload.units)
+    ? payload.units.filter((unit) => unit && unit.commit).length
+    : 0;
+  const parts = [
+    `${REVIEW_EVIDENCE_GATE_COMPLETION_PREFIX}=${judgment}`,
+    `mode=${mode}`,
+    `range=${range}`,
+    `repo=${available ? (payload.repo || '(不明)') : '(読めない)'}`,
+    `targets=${unitCount}`,
+    `pass=${countPass}`,
+    `stop=${countStop}`,
+    `unverified=${countUnverified}`,
+    `exit_would_be=${available ? (payload.exitWouldBe ?? '') : ''}`,
+    `blocked=${blocked ? 1 : 0}`,
+  ];
+  if (!available) {
+    parts.push(`available=0`);
+    parts.push(`reason=${oneLineText(result?.error?.message || stderr || '関所の出力を読めない')}`);
+  } else if (problems.length > 0) {
+    parts.push(`reason=${oneLineText(problems.join(' / '))}`);
+  }
+  return {
+    available,
+    judgment,
+    mode,
+    range,
+    blocked,
+    exitStatus: status,
+    exitWouldBe: available ? payload.exitWouldBe ?? null : null,
+    counts,
+    problems,
+    line: parts.join(' '),
+  };
+}
+// --- 登録漏れの監査(新しいレーンが関所の対象になっているか) -----------------
+// 関所の設定 repos は静的な列挙なので、新しく作ったレーンは誰かが登録するまで「設定に無い repo です」=
+// 未確認のままになる。完了の経路で監査を 1 行だけ残す。mode: report_only の思想に合わせて止めはしない
+// (止めるかどうかは関所の契約に任せ、ここは見落としに気づくための報告だけを行う)。
+const REVIEW_EVIDENCE_REGISTRY_AUDIT_PREFIX = 'REVIEW_EVIDENCE_REGISTRY_AUDIT';
+function reviewEvidenceRegistryAuditScriptPath() {
+  return resolve(REVIEW_EVIDENCE_GATE_SCRIPTS_DIR, 'review-evidence-registry-audit.mjs');
+}
+export function evaluateCompletionRegistryAudit(options = {}) {
+  const spawn = typeof options.spawn === 'function' ? options.spawn : spawnSync;
+  const args = [reviewEvidenceRegistryAuditScriptPath()];
+  let result;
+  try {
+    result = spawn(process.execPath, args, { encoding: 'utf8', maxBuffer: 8 * 1024 * 1024, timeout: 60000 });
+  } catch (error) {
+    result = { status: null, stdout: '', stderr: '', error };
+  }
+  const stdout = typeof result?.stdout === 'string' ? result.stdout : '';
+  const stderr = typeof result?.stderr === 'string' ? result.stderr : '';
+  const exitStatus = typeof result?.status === 'number' ? result.status : null;
+  const line = stdout.split('\n').find((item) => item.startsWith(`${REVIEW_EVIDENCE_REGISTRY_AUDIT_PREFIX}=`)) || null;
+  if (line) return { available: true, line, exitStatus };
+  return {
+    available: false,
+    line: `${REVIEW_EVIDENCE_REGISTRY_AUDIT_PREFIX}=unavailable reason=${oneLineText(result?.error?.message || stderr || '監査の出力を読めない')}`,
+    exitStatus,
+  };
 }
 function parseArgs(argv) {
   const out = {};
@@ -147,6 +293,14 @@ export function produce(args) {
       return true;
     };
     try {
+      // 完了を確定する前に、この repo の取り込み先..HEAD を関所に見せる(本番反映しないレーンを素通りさせない)。
+      // report_only では関所が 0 で終わるので blocked にならず、判定と根拠だけを出力に残す。
+      const reviewEvidenceGate = evaluateCompletionReviewEvidenceGate(root);
+      if (reviewEvidenceGate.blocked) {
+        fail(`review evidence gate blocked completion: ${reviewEvidenceGate.line}`);
+      }
+      // 関所の判定の近くで、設定に未登録のレーンが無いかも 1 行だけ残す(止めはしない)。
+      const registryAudit = evaluateCompletionRegistryAudit();
       writeOrReuse(completionAbs, completionDoc);
       const completionSha = sha256File(completionAbs);
       const completionEvidenceRel = `.ai/requests/${plan.caseId}/evidence/completion-${safeTaskId}.json`;
@@ -172,7 +326,25 @@ export function produce(args) {
       manifest.dotcheck = { path: evidenceArgs.dotcheck.rel, sha256: sha256File(evidenceArgs.dotcheck.abs) };
       validateEvidenceManifest({ root, manifest, task, plan, approval });
       writeOrReuse(manifestAbs, manifest);
-      return { ok: true, completionPath: completionRel, completionSha256: sha256File(completionAbs), manifestPath: manifestRel, manifestSha256: sha256File(manifestAbs) };
+      return {
+        ok: true,
+        completionPath: completionRel,
+        completionSha256: sha256File(completionAbs),
+        manifestPath: manifestRel,
+        manifestSha256: sha256File(manifestAbs),
+        reviewEvidenceGate: {
+          judgment: reviewEvidenceGate.judgment,
+          mode: reviewEvidenceGate.mode,
+          range: reviewEvidenceGate.range,
+          blocked: reviewEvidenceGate.blocked,
+          line: reviewEvidenceGate.line,
+        },
+        registryAudit: {
+          available: registryAudit.available,
+          exitStatus: registryAudit.exitStatus,
+          line: registryAudit.line,
+        },
+      };
     } catch (error) {
       for (const file of created.reverse()) rmSync(file, { force: true });
       if (createdEvidenceDir) {
@@ -183,7 +355,15 @@ export function produce(args) {
   });
 }
 function main() { return produce(parseArgs(process.argv.slice(2))); }
+// 完了の出力(JSON + 関所の判定 1 行 + 登録漏れの監査 1 行)。関所の 1 行は最後のままにする。
+// 監査の行が無いときは出さない(古い呼び出し側の出力を変えない)。
+export function completionStdout(result) {
+  const lines = [JSON.stringify(result, null, 2)];
+  if (typeof result?.registryAudit?.line === 'string') lines.push(result.registryAudit.line);
+  if (typeof result?.reviewEvidenceGate?.line === 'string') lines.push(result.reviewEvidenceGate.line);
+  return `${lines.join('\n')}\n`;
+}
 if (process.argv[1]?.endsWith('ai-task-case-completion.mjs')) {
-  try { process.stdout.write(`${JSON.stringify(main(), null, 2)}\n`); }
+  try { process.stdout.write(completionStdout(main())); }
   catch (error) { process.stderr.write(`${error.message}\n`); process.exitCode = 1; }
 }
